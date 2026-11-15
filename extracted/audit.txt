@@ -1,0 +1,33 @@
+Foremost version 1.5.7 by Jesse Kornblum, Kris Kendall, and Nick Mikus
+Audit File
+
+Foremost started at Sat Nov 14 10:10:52 2026
+Invocation: foremost -t jpg,wav -i firmware.bin -o extracted 
+Output directory: /mnt/c/Users/connor/projects/g6-thumb-camera/G6-thumb-camera-mod/extracted
+Configuration file: /etc/foremost.conf
+------------------------------------------------------------------
+File: firmware.bin
+Start: Sat Nov 14 10:10:52 2026
+Length: 1024 KB (1048576 bytes)
+ 
+Num	 Name (bs=512)	       Size	 File Offset	 Comment 
+
+0:	00001552.jpg 	       6 KB 	     794626 	 
+1:	00001565.jpg 	       7 KB 	     801743 	 
+2:	00001580.jpg 	       7 KB 	     809196 	 
+3:	00001595.jpg 	       7 KB 	     816693 	 
+4:	00001609.jpg 	       4 KB 	     824308 	 
+5:	00000989.wav 	       1 KB 	     506556 	 
+6:	00001264.wav 	      13 KB 	     647280 	 
+7:	00001291.wav 	      68 KB 	     661198 	 
+8:	00001428.wav 	      59 KB 	     731302 	 
+9:	00001548.wav 	       1 KB 	     792744 	 
+Finish: Sat Nov 14 10:10:52 2026
+
+10 FILES EXTRACTED
+	
+jpg:= 5
+wav:= 5
+------------------------------------------------------------------
+
+Foremost finished at Sat Nov 14 10:10:52 2026
