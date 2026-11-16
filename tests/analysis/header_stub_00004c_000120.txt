@@ -1,0 +1,60 @@
+
+/tmp/tmp6fo4ls6f/words_be.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000004c <.data+0x4c>:
+      4c:	d7 e1 77 f4 	l.sw -12(r1),r14
+      50:	d7 e1 57 f8 	l.sw -8(r1),r10
+      54:	d7 e1 4f fc 	l.sw -4(r1),r9
+      58:	9c 21 ff f0 	l.addi r1,r1,-16
+      5c:	9d 43 00 00 	l.addi r10,r3,0
+      60:	a9 c4 00 00 	l.ori r14,r4,0x0
+      64:	9c 6a 00 04 	l.addi r3,r10,4
+      68:	48 00 50 00 	l.jalr r10
+      6c:	11 2a 88 00 	l.bf 0x4aa206c
+      70:	00 02 00 c4 	l.j 0x80380
+      74:	9c 6a 00 08 	l.addi r3,r10,8
+      78:	48 00 50 00 	l.jalr r10
+      7c:	00 00 90 01 	l.j 0x24080
+      80:	00 00 00 00 	l.j 0x80
+      84:	00 00 00 08 	l.j 0xa4
+      88:	00 00 00 00 	l.j 0x88
+      8c:	9c 6a 00 10 	l.addi r3,r10,16
+      90:	48 00 50 00 	l.jalr r10
+      94:	00 00 00 00 	l.j 0x94
+      98:	00 00 00 01 	l.j 0x9c
+      9c:	00 00 00 16 	l.j 0xf4
+      a0:	00 00 00 00 	l.j 0xa0
+      a4:	04 00 00 08 	l.jal 0xc4
+      a8:	15 00 00 00 	l.nop 0x0
+      ac:	a9 60 00 00 	l.ori r11,r0,0x0
+      b0:	85 21 00 0c 	l.lwz r9,12(r1)
+      b4:	85 41 00 08 	l.lwz r10,8(r1)
+      b8:	85 c1 00 04 	l.lwz r14,4(r1)
+      bc:	9c 21 00 10 	l.addi r1,r1,16
+      c0:	44 00 48 00 	l.jr r9
+      c4:	18 e0 00 00 	l.movhi r7,0x0
+      c8:	a8 e7 1e 70 	l.ori r7,r7,0x1e70
+      cc:	44 00 38 00 	l.jr r7
+      d0:	d7 e1 0f f8 	l.sw -8(r1),r1
+      d4:	d7 e1 4f fc 	l.sw -4(r1),r9
+      d8:	a8 80 98 04 	l.ori r4,r0,0x9804
+      dc:	9c c0 00 14 	l.addi r6,r0,20
+      e0:	9c 40 00 00 	l.addi r2,r0,0
+      e4:	c2 60 10 04 	l.mtspr r0,r2,0x9804
+      e8:	b4 a4 00 00 	l.mfspr r5,r4,0x0
+      ec:	bc a5 02 58 	l.sfleui r5,600
+      f0:	0c 00 00 06 	l.bnf 0x108
+      f4:	9c 40 00 00 	l.addi r2,r0,0
+      f8:	9c c6 ff ff 	l.addi r6,r6,-1
+      fc:	c2 60 10 04 	l.mtspr r0,r2,0x9804
+     100:	e4 26 10 00 	l.sfne r6,r2
+     104:	13 ff ff f9 	l.bf 0xe8
+     108:	84 21 ff f8 	l.lwz r1,-8(r1)
+     10c:	85 21 ff fc 	l.lwz r9,-4(r1)
+     110:	44 00 48 00 	l.jr r9
+     114:	44 00 48 00 	l.jr r9
+     118:	15 00 00 00 	l.nop 0x0
+     11c:	00 00 00 00 	l.j 0x11c

@@ -1,0 +1,940 @@
+offset_hex	length	text
+0x000A38	5	01234
+0x001450	11	[WDT RESET]
+0x001460	11	[low power]
+0x001478	11	[exception]
+0x002BD4	67	/.-,+*)('&%$#"! ?>=<;:9876543210/.-,+*)('&%$#"! ?>=<;:9876543210hx(
+0x008324	7	battery
+0x00833C	8	g-sensor
+0x0083B4	6	sensor
+0x0083CC	7	sd-card
+0x0083E4	7	usb-dev
+0x0083FC	8	usb-host
+0x008414	11	touch-panel
+0x009EA4	8	00:00:00
+0x009EB0	8	00:00:00
+0x009EBC	8	00:00:00
+0x009EC8	8	00:00:00
+0x009ED4	5	00:00
+0x009F84	9	0000/0000
+0x00A028	9	0000/0000
+0x069EA3	8	EXFAT   
+0x069EB0	5	FAT32
+0x069EB6	7	"*:<>?|
+0x069EBF	6	+,;=[]
+0x069EC9	8	MSDOS5.0
+0x069ED2	19	NO NAME    FAT32   
+0x069EE6	19	NO NAME    FAT     
+0x069F28	6	EEEIII
+0x06A2EB	23	%$%a%b%V%U%c%Q%W%]%\\%[%
+0x06A305	5	%4%,%
+0x06A30D	41	%<%^%_%Z%T%i%f%`%P%l%g%h%d%e%Y%X%R%S%k%j%
+0x06A368	8	e"d" #!#
+0x06A3B0	5	DA380
+0x06A3E8	6	GMA301
+0x06A405	5	PP2HL
+0x06A420	7	SC7A30E
+0x06B0BC	16	{uqlhd^ZWQNNLLLI
+0x06B0DA	18	~ypjf`\\XVSQMKJIHIJ
+0x06B0F5	23	}wpqofc[XUSRQNMJHGGGFGJ
+0x06B112	26	~wtqljjc\\ZUQOMKJHGFDCCBCEG
+0x06B558	9	TP ICNT81
+0x06B574	9	TP NS2009
+0x06B6A4	42	Generic Mass-Storage    3.10.1.00 Beacon  
+0x06B992	9	HX-Tech H
+0x06B9AA	15	HX330X-V001.001
+0x06BE38	8	 TT\\((((
+0x06BE61	7	l$$$$$<
+0x06BE9D	7	l4    p
+0x06BEB2	5	$$$$$
+0x06BEC5	9	x$$$$$8 p
+0x06BEDA	5	$$$$$
+0x06BEED	7	l4$$$$t
+0x06BF01	7	xTTTTTT
+0x06BF25	11	`   ,$(8$$t
+0x06BF61	11	`   ,4$$$$t
+0x06BFA2	5	$<   
+0x06BFB6	5	$$$$$
+0x06BFCA	5	4    
+0x06BFD9	10	`   (4$$$$
+0x06C08D	5	l(((0
+0x06C0B4	12	 TTT\\8((((((
+0x06C0C9	7	d$$$,((
+0x06C0DD	10	d$$$$$$$$$
+0x06C105	5	<D@@ 
+0x06C119	11	x$$$8(($$$t
+0x06C12D	11	8HDDDDDtT,<
+0x06C141	11	x$$$$8    p
+0x06C155	11	8HDDDDDDDH8
+0x06C169	11	l$4444,,$$t
+0x06C17D	11	lllllTTTTTT
+0x06C191	11	p         |
+0x06C1A5	11	t$((0((,$$t
+0x06C1E1	11	d$$$$<$$$$d
+0x06C1F6	9	$@@@@LDD$
+0x06C209	11	|$((8((   p
+0x06C21D	11	|$((8((  $|
+0x06C231	11	p($$$$$$$(p
+0x06C246	10	d@@@@@@@D8
+0x06C259	11	x$$$8$$$$$x
+0x06C271	7	((<$$$d
+0x06C282	10	lLLTTT\\DH8
+0x06C30D	7	8HDDDL4
+0x06C321	11	8DDD(8DDDD8
+0x06C349	11	8(@@XdDDD$8
+0x06C35D	6	|@@@Xl
+0x06C3C1	11	8HDDDDDDDH8
+0x06C3DC	5	   @@
+0x06C48A	10	(((0,TTHH4
+0x06C49D	6	$d\\Xh,
+0x06C4B1	5	8TTP0
+0x06C4CA	6	<(|(((
+0x06D692	8	x<8888<x
+0x06D75E	8	x<8888<x
+0x06D7A2	21	8<8<8<8<8<8<8<8<8<8|<
+0x06D839	7	x8888>x
+0x06D8B6	17	<xx8x8x8x8x8x88x>
+0x06D8FA	17	|xx8x<x<x<x<x<|x~
+0x06D93E	5	<xx<x
+0x06D980	22	?x<<<<8<8<8<8<8<8<8<8<
+0x06DA5C	6	8p888<
+0x06DB18	22	?x<<<<8<8<8<8<8<8<8<8<
+0x06DB5E	8	<p8p8p<p
+0x06DC2A	17	<xx8x8x8x8x8x88x>
+0x06DC6E	5	<8x<x
+0x06DC78	7	x<x<<<>
+0x06DCB2	17	|xx8x<x<x<x<x<|x~
+0x06DD00	7	88x8xx}
+0x06DF06	6	x<88<x
+0x06DF48	6	x<88<x
+0x06DF67	7	x<xx<x<
+0x06DFAA	8	<x<x<x<x
+0x06DFD4	12	x<x<8<88<x<x
+0x06E014	35	x<x<x<x<x<x<x<x<x<x<x<x<x<x<x<x<<<?
+0x06E0A0	7	<x888<x
+0x06E0BA	5	x<<<?
+0x06E0E6	12	x<x<x<x<x<xx
+0x06E0FE	8	xxxxx<x<
+0x06E128	9	>x<8x<x<x
+0x06E16C	5	xxx<x
+0x06E1B0	9	>x<8x<x<x
+0x06E1C6	8	x<x<8<<x
+0x06E1F0	12	x<|<|<|<~<~<
+0x06E210	6	x|x|x<
+0x06E234	13	|<||||||||~|~
+0x06E2BC	5	x<xxx
+0x06E2DA	8	xxxxx<x<
+0x06E317	11	<x<x<8<88<x
+0x06E388	16	x<x<x<x<x<x<x<x<
+0x06E39C	18	x<x<x<x<x<x<x<x<x<
+0x06E3D1	10	x<88<x<x<x
+0x06E49E	13	xxx<x<x<x<x<x
+0x06E4AE	11	x<x<x<x<xxx
+0x06E524	12	xxx<x<x<x<xx
+0x06E57E	9	<88<x<x<x
+0x06E5B2	7	g|fnnnl
+0x06E5F0	8	<x<x8888
+0x06E788	17	<xx<p<p<p<p<xxxx?
+0x06E7CC	12	<x88x8x888<x
+0x06E7E6	5	p<x<?
+0x06E8AF	8	<p<p8xx?
+0x06E8EB	7	p<pxppp
+0x06E920	6	<x88x<
+0x06E937	8	<p<x<<x?
+0x06E964	6	<xx8p<
+0x06E9ED	8	x<888x<x
+0x06EA02	8	x<8<88<x
+0x06ECD6	9	~0~0~`v`v
+0x07BAC4	8	WAVEfmt 
+0x07BBBE	6	)LGUA)
+0x07BC06	5	D8}(s
+0x07BC2B	6	3hY#C2
+0x07BC81	5	:&Ik(
+0x07BD1C	6	1/H@!$
+0x07BD42	6	v*8<&%
+0x07BDDE	7	y%b83%Q
+0x07BE8A	5	=3:-b
+0x07C378	11	mempool err
+0x07C4B0	17	HX330X_CAR_V1.0.0
+0x07C4C2	7	usb-dev
+0x07C4CA	7	battery
+0x07C4D2	8	g-sensor
+0x07C4E6	7	sd-card
+0x07C4EE	8	usb-host
+0x07C4F7	11	touch-panel
+0x07C511	13	 !"#$%&'()*+,
+0x07C7DC	20	memory malloc failed
+0x07CBC7	11	9850-260513
+0x07D069	11	DEVIN CHECK
+0x07D075	5	DEVIN
+0x07D087	6	ASTERN
+0x07D092	5	USB20
+0x07D098	5	USB11
+0x07D0B8	5	POWER
+0x07D0BE	8	POWEROFF
+0x07D0C7	8	Unstable
+0x07D0D9	12	||||||||||||
+0x07D0E9	5	Time:
+0x07D0F4	6	HX3302
+0x07D100	8	Gsensor:
+0x07D11C	7	Sensor:
+0x07D124	7	USBDEV:
+0x07D12C	8	USBHOST:
+0x07D70C	12	SELFTEST.bin
+0x07D71E	10	H63S_DVP_L
+0x07D7B0	6	AUDIO/
+0x07D7B7	6	VIDEO/
+0x07D7BE	6	PHOTO/
+0x07D7E0	10	Play Audio
+0x07D7EB	13	no audio file
+0x07D924	10	Play Video
+0x07E048	9	Power Off
+0x07E052	12	Record Audio
+0x07E05F	8	00:00:00
+0x07E0E0	12	Record Photo
+0x07E2C8	12	Record Video
+0x07E2DA	5	1080P
+0x07E484	14	hx330x_sdk.bin
+0x07E493	9	SD Update
+0x07E49D	10	usb device
+0x07F621	5	'])0+
+0x07F629	5	/)1T3
+0x07F6D4	20	frame decode timeout
+0x07F790	45	%&'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x07F845	43	&'()*56789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x07FC77	5	@8Px`
+0x07FE7B	5	@>P~`
+0x07FE97	5	@>P~`
+0x07FEB7	5	 +`d[
+0x07FEBF	5	(B_s]
+0x07FF2E	6	(%+DXi
+0x07FF35	8	/*#/dWa&
+0x07FF3E	6	**Fbxb
+0x07FF4B	5	l%+Aa
+0x07FFC5	39	*<5?4;5:9BJ^PBPYH:;SpTZbejkjAPt{ui{ckuo
+0x07FFF5	55	/cB8Bcoccccccoscccccosxccccosyzcccosx{{ccosy{||cosxz{|}
+0x08056A	19	HIGFEDCBA@.-,+*)('&
+0x080589	12	DBCA,+*)('&%
+0x080599	12	.,-+*)('&%$#
+0x0805AA	21	HIGFEDCBA.-,+*)('&%$#
+0x0805C2	27	HIGFEDCBA@/.-,+*)('&%$#"! K
+0x0805E1	5	DB,AC
+0x0805E9	12	DBCA*)('&%KJ
+0x080601	5	)(K'*
+0x080619	5	DB*AC
+0x080621	12	DBCA*)('&%$#
+0x080632	19	HIGDCBA*)('&%$#"!KJ
+0x0806FB	143	!"$%')*,-/0235689;<>?@BCDEGHIJKMNOPQRSTUVWWXYZ[[\\]]^__``aaabbbccccdddddddddddccccbbbaaa``__^]]\\[[ZYXWWVUTSRQPONMKJIHGEDCB@?><;9865420/.,*)'&$"!
+0x081798	16	awb_scene_mod:%d
+0x0817AA	15	-HUSB11 EP0 ERR
+0x0817BB	19	-HUSB11 EP0 RXSTALL
+0x0817D0	15	-HUSB20 EP0 ERR
+0x0817E1	19	-HUSB20 EP0 RXSTALL
+0x0817F6	37	Usensor Format Not Support YUV or MJP
+0x08181D	43	Format:%x Support Only One Frame,Not switch
+0x08184A	34	fomart [%x]type not need to switch
+0x08186E	33	Usensor Format Not Support Switch
+0x081891	31	Usensor Fix MJP But not Support
+0x0818B2	66	[Usensor Select]:format:%d, frame:%d, type:%d, width:%d, height:%d
+0x0818F6	67	[Usensor Select]:wMaxVideoFrameBufSzie:%x, wDefaultFrameInterval:%x
+0x08193B	39	VS bNumFrameDescriptors OUT OF RANGE:%d
+0x081964	32	=========HUSB20 Connect=========
+0x081986	32	=========HUSB11 Connect=========
+0x0819A8	15	DEV ID:[%x, %x]
+0x0819B9	37	MSC:   [infs:%d, altset:%d, enpts:%d]
+0x0819E0	33	MSC:IN [ep:%x, attr:%x, pload:%x]
+0x081A03	33	MSC:OUT[ep:%x, attr:%x, pload:%x]
+0x081A26	30	UVC: CTRL [infs:%d, altset:%d]
+0x081A46	49	UVC: CTRL [ep:%x, attr:%x, pload:%x, interval:%x]
+0x081A79	30	UVC: STRM [infs:%d, altset:%d]
+0x081A99	49	UVC: STRM [ep:%x, attr:%x, pload:%x, interval:%x]
+0x081ACC	31	=========UVC VS_HEADER=========
+0x081AED	26	bNumFormats:            %d
+0x081B0A	31	=========UVC VS_FORMAT=========
+0x081B2B	26	bDescriptorSubtype:     %x
+0x081B47	26	bFormatsIndex:          %x
+0x081B63	26	bNumFrameDescriptors:   %x
+0x081B7F	26	bDefaultFrameIndex:     %x
+0x081B9B	30	---------UVC VS_FRAME---------
+0x081BBB	26	bFrameIndex:            %x
+0x081BD7	26	wWidth:                 %x
+0x081BF3	26	wHeight:                %x
+0x081C0F	26	wDefaultFrameInterval:  %x
+0x081C2B	26	wMaxFrameInterval:      %x
+0x081C47	26	wMinFrameInterval:      %x
+0x081C63	31	===============================
+0x081E54	30	p_lcd_buffer->scan_mode:%x, %x
+0x081E74	13	CSI SHOW STOP
+0x081E83	21	[err] get busy buffer
+0x081E9A	14	CSI SHOW START
+0x081EAA	24	hal_lcdCsiFrameKickOnce:
+0x081EC4	10	find te %x
+0x081ED0	33	[0] %d, [1] %d , [2] %d , [3] %d 
+0x081EF3	15	[rot err] %x,%x
+0x081F04	16	[UILZO] overflow
+0x081F38	34	[AVI DEC]  addr = 0x%x,size = 0x%x
+0x081F5C	31	wLongsPerEntry:%d,bIndexType:%d
+0x081F7D	12	dwChunkId:%x
+0x081F8B	21	decoer : avi standard
+0x081FA2	21	decoer : avi open DML
+0x081FEC	13	AVIXnum:%d,%d
+0x081FFB	26	avi : odml head write fail
+0x082017	18	avi_odmlEncodeInit
+0x08202B	55	[AVI_ODML ENC]  addr = 0x%x,size = 0x%x, headsize= 0x%x
+0x08209C	8	AVI LIST
+0x0820A8	9	hdrlavih8
+0x0820EC	6	LISTp;
+0x0820F4	9	strlstrh8
+0x082100	8	vidsMJPG
+0x082138	5	strf(
+0x085C18	5	vprpD
+0x085C6C	9	strlstrh8
+0x089784	8	odmldmlh
+0x089890	30	moviavi : std index write fail
+0x0898B0	25	avi : std head write fail
+0x0898CB	38	[AVI STD ENC]  addr = 0x%x,size = 0x%x
+0x08992C	8	AVI LIST
+0x089938	9	hdrlavih8
+0x089984	9	strlstrh8
+0x089990	8	vidsMJPG
+0x0899C8	5	strf(
+0x089A88	5	LISTp
+0x089A90	9	strlstrh8
+0x089B08	19	movi[MP3 INIT] FAIL
+0x089B1D	21	mp3_dec_op.dac_buf:%x
+0x089B34	26	mp3_dec_op.dac_buf_size:%x
+0x089B50	25	[MP3 DEC] start fail:UINT
+0x089B6B	11	[fd:%x, %d]
+0x089B78	17	[MP3 DEC] mp3 end
+0x089B8B	15	[MP3 DEC]err:%d
+0x089B9C	31	[MP3 DEC] type check err:%d, %d
+0x089BBD	13	use time:%dms
+0x089BCC	51	mp3_dec_op.mp3_head_len:%d, src_size:%d, bitrate:%d
+0x089C01	66	SAVE WAV:samplerate %d, pre_totaltime:%dms, savelen:%d, cur_len:%d
+0x089C45	18	OUT totaltime:%dms
+0x089C59	20	DECODE_TO_WAV_END:%d
+0x089C74	15	[mp3 dac] pause
+0x089C85	14	nextframe = 0 
+0x089C95	8	mp3 stop
+0x089C9F	14	mp3 dac sta:%d
+0x089CAF	16	 [mp3 dac] PAUSE
+0x089CC1	17	 [mp3 dac] resume
+0x089CD4	22	[MP3 DAC START]:%d, %d
+0x089CEC	20	[mp3 dac] start fail
+0x089D02	27	[MP3 DEC] dec frame fail:%d
+0x089D1F	33	[MP3 DEC START] without id3v2 tag
+0x089D64	11	[DEC ERR]%x
+0x089D78	22	[WAV INFO] unknow type
+0x089D90	34	[WAV DEC]  addr = 0x%x,size = 0x%x
+0x089DE4	34	[WAV ENC]  addr = 0x%x,size = 0x%x
+0x089E40	8	WAVEfmt 
+0x089E64	35	[mjp Enc] remain mem err:%dkb, %dkb
+0x089E89	31	[mjp Enc] remain mem:%dkb, %dkb
+0x089EAA	17	[mjp EncLE] %d,%d
+0x089EBD	31	[mjp Enc] mem err src[%d,%d] %d
+0x089EDE	24	[mjp Enc] step err:%d,%d
+0x089EF8	27	step decode line err:%d, %d
+0x089F15	27	hal_mjp_step_decode fail:%d
+0x089F32	6	len:%x
+0x089F3A	19	[MJP STEP] len null
+0x089F4F	33	[MJP STEP] check ffd8 fail:%x, %x
+0x089F72	27	[MJP STEP] done dri fail:%x
+0x089F8F	30	hal_mjp_stepsub_decode fail:%d
+0x089FAF	23	[MJP STEP SUB] len null
+0x089FC8	31	[MJP STEP SUB] done dri fail:%x
+0x089FE9	26	[MJP STEP SUB] done err:%d
+0x08A005	22	hal_mjp_step_resume:%d
+0x08A01D	40	src_w:%d,%d, src_scaler:%d,%d, tar:%d,%d
+0x08A047	19	ratio:%d,%d,h:%d,%d
+0x08A05C	31	[MJP STEP][%d, %d] ratio[%d,%d]
+0x08A07D	48	need_size:%dkb, free_size:%dkb, elne_min_step:%d
+0x08A0AF	21	[MJP STEP] line:%d,%d
+0x08A0C6	30	[MJP STEP] ybuffer malloc fail
+0x08A0E6	23	[MJP STEP ELNE] mem err
+0x08A0FF	29	[MJP STEP] dritab malloc fail
+0x08A11E	65	hal_mjp_step_start dri_max:%d, src_step_line:%d, dst_step_line:%d
+0x08A161	26	hal_mjp_step_start fail:%d
+0x08A446	5	@@@@@
+0x08A47C	10	SPI_JD9850
+0x08A9C0	104	!"$%'(*+-.01245789;<>?@ACDEGHIJKMNOPQRSUVWXYZ[\\]^_`aabcdefgghijjkllmnnoppqrrssttuuvvwwxxyyyzz{{{|||}}~~~
+0x08AAC1	105	 !"$%'()+,-/01345789:;=>?@ACDEFGHIJKMNOPQRSTUVWXXYZ[\\]^__`abcddefgghijjkllmnnoppqrrsstuuvvwwxyyzz{{||}}~~
+0x08ABC4	102	!"#%&'(*+,-.012345789:;<=>?@BCDEFGHIJKLMNOPQQRSTUVWXYZ[[\\]^_``abcddefghhijkklmnnopqqrsstuvvwxxyzz{|}}~
+0x08ACC6	101	 !"#$&'()*+,-/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTTUVWXYZ[\\]^^_`abcddefghijjklmnoppqrsttuvwxyyz{|}~~
+0x08ADC9	98	 !"#$%&')*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPPQRSTUVWXYZ[\\]^_`abbcdefghijklmnoopqrstuvwxyzz{|}~
+0x08AECB	96	 !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefgghijklmnopqrstuvwxyz{|}~
+0x08AFCC	95	 !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+0x08B0CD	94	 !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdeghijklmnopqrstuvwxyz{|}~
+0x08B1CF	92	 !!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHJKLMNOPQRSTUVWXYZ[\\^_`abcdefghijkmnopqrstuvwxz{|}~
+0x08B2D4	87	 !"#$%&'()*+,-./0123456789:;<=>?@ABCDFGHIJKLMNOPRSTUVWXZ[\\]^_`bcdefghjklmnpqrstuwxyz{|~
+0x08B3D9	82	 !"#$%&&'()*+,-./012345789:;<=>?@ACDEFGHJKLMNPQRSTVWXY[\\]^`abcefgijklnoprstvwxy{|}
+0x08B4DF	76	 !"#$%%&'()*+,-./023456789;<=>?@BCDEGHIJLMNPQRTUVXYZ\\]_`acdfgijkmnpqstvwyz|}
+0x08B5E5	71	 !!"#$%&'()*+,-/012345789:<=>@ABDEFHIJLMOPRSUVXY[\\^_acdfgiklnpqstvxy{}~
+0x08CF04	13	H63P_DVP_720p
+0x08CF48	10	H63S_DVP_L
+0x08CF8C	11	SC1345_720P
+0x08E324	59	 $'*-0357:<>@BDFHIKMNPRSUVXY[\\]_`acdefhijkmnopqrstvwxyz{|}~
+0x08E440	95	 !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+0x08E5A1	95	~}|{zyxwvutsrqponmlkjihgfedcba`_^]\\[ZYXWVUTSRQPONMLKJIHGFEDCBA@?>=<;:9876543210/.-,+*)('&%$#"! 
+0x08E650	98	 !""#$%&''()*+,,-./01123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrsuvwxyz{|}~
+0x08E74B	97	 !!"#$%&'()*+,,-./0123456789:;<=>?@ABCCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdeghijklmnopqrstuvwxyz{|}~
+0x08E845	96	 !"#$%&''()*+,-./0123456789:;<=>>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklnopqrstuvwxyz{|}~
+0x08E93F	95	 !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+0x08EA2C	43	 "$')+.0257:<>@BEGIKNPRTVX[]_acehjlnpruwy{}
+0x08EB2B	44	!#&(+-/1468:=?ACEHJLNQSUWY[]_acegjlnprtvxz|~
+0x08EC2A	45	!$&)+.02479;=@BDFHKMOQTUWY[]_acegiklnprtvxz|~
+0x08ED28	47	 #%(*-/2468;=?ADFHJLNPRTVWY[]_acegikmnprtuwy{|~
+0x08EE27	47	 #&(+.0368:<?ACEHIKMOQSUWYZ\\^`bdegikmoprtuwyz|~
+0x08EF26	47	!$'*,/247:<>@BDFHKLNPRTVXZ\\]_acdfhjkmoqrtuwxz|}
+0x08F025	47	!$'*.0358:=?ACEGIKNOQSUWY[]_`bdegijlnoqstvwyz|}
+0x08F124	48	!%(+.1369;>ACEGIKMOQRTVXZ\\^`bcefhikmnpqsuvwyz{}~
+0x08F223	48	 $(+.157:<?ADFHJLNPRUVXZ[]_`bdeghjkmnpqstvwxz{|~
+0x08F323	47	#',/259;>@CEHJLNPRTVXY[]^`bceghiklnoprsuvxyz|}~
+0x08F422	46	#'+0369<>ACFHKMOQSUWY[\\^`acefhjklnoprstvwxz{|}
+0x08F522	45	&*.369<@BEGJLOPRTVXZ\\^_abdeghjlmnpqrtuvxyz|}~
+0x08F621	44	#*.27:=@DFHKMORSUWY[]_abdeghjkmopqrtuvwyz{|~
+0x08F720	44	!'.26;>ADGILNQSVWY[]^`bdeghjkmnprstuvwyz{|}~
+0x091EC2	18	}{ywusrponlkjjihgf
+0x091EDD	23	~zwurpnlkihfedcbaa`__^]
+0x091EF8	61	{vroligeca`^]\\[ZYXXWVVUUTTSSwqmifca^][YXWVUTSSRQQPPOOONNNMMMj
+0x092602	18	}{ywusrponlkjjihgf
+0x09261D	23	~zwurpnlkihfedcbaa`__^]
+0x092638	60	{vroligeca`^]\\[ZYXXWVVUUTTSSwqmifca^][YXWVUTSSRQQPPOOONNNMMM
+0x092D35	127	|vqlheb_\\ZXVTSQPONMLKJIHHGFFEEDojfb_\\YWUSQPNMLKJIHGFFEEDDCCBBAA\\XUSQOMKJIGFFEDCBBAA@@???>>>====NKIGFDCBA@?>==<<;;:::99988887777
+0x09321C	5	GBv@w
+0x093260	5	\\l]D^
+0x09326A	5	fCgyh
+0x093270	6	ixj(zf
+0x0932EA	5	GBv@w
+0x093308	5	4 5 :
+0x093336	5	_@o@d
+0x093346	5	\\F]C^
+0x093350	10	g2hDipj"zD
+0x0933F6	5	63367
+0x09341D	5	6}86~
+0x09B972	7	Y&ubF,r
+0x09B9AB	7	=acV>.:
+0x09B9CF	5	EQdPE
+0x09B9FE	6	"LubFL
+0x09BAC5	11	s5VCNMV-@eV
+0x09BAD1	5	H}VSg
+0x09BAF5	7	nYWdOrW
+0x09BB2A	6	Q\\&z^\\
+0x09BBBD	7	,H^acV^
+0x09BBFA	7	 _"L/_>
+0x09BC09	8	{[_LEj_ 
+0x09BC56	7	<dZJDd]
+0x09BCD2	6	0eN'8e
+0x09BCDD	7	LHeQdPe
+0x09BD4A	6	&foN/f
+0x09BD52	6	7ff&@f
+0x09BD6E	7	rf|s{fq
+0x09BDC6	7	0gxC9g%
+0x09BE56	6	8l5F=l
+0x09BE5E	7	AlubFli
+0x09BE72	7	XlS>]lQ
+0x09BE86	7	olG8tl@
+0x09BE8E	6	xljq}l
+0x09BF22	6	&mWW+m
+0x09BF4D	7	_[m!3`m
+0x09BF62	6	smxexm
+0x09C0BA	6	#o4N(o
+0x09C0CE	11	=oFIBoK~Go>
+0x09C23E	7	 (08@LZ
+0x09C28B	6	   ***
+0x09C2AF	6	   ,,,
+0x09C2FE	6	   ***
+0x09C326	6	   ,,,
+0x09C33E	8	 &.4<D:6
+0x09C356	8	 &.6>FL$
+0x09C37D	6	"""***
+0x09C3F6	6	"""***
+0x09C45F	6	&.8DTf
+0x09C478	5	"*26L
+0x09C490	5	"(.66
+0x09E070	6	RIFFV6
+0x09E078	8	WAVEfmt 
+0x0A168E	5	LIST8
+0x0A1696	9	INFOINAM,
+0x0A16D6	8	WAVEfmt 
+0x0A16F2	5	datap
+0x0B286A	5	LIST4
+0x0B2872	9	INFOINAM(
+0x0B28AE	8	WAVEfmt 
+0x0B5883	5	% %x%
+0x0B59C3	5	)&(|$
+0x0B5D99	5	&u*),
+0x0B61EF	5	*o(A!
+0x0B65C5	10	&9'@'`%e 1
+0x0B6AED	5	'P*p)
+0x0B7326	6	p##%["
+0x0B7957	7	,(3x3?.
+0x0B7997	5	.0.a&
+0x0B7A3A	5	W$T!5
+0x0B7B2F	8	$[)Q':#b
+0x0B7E15	7	*3*b(`&
+0x0B7E21	7	)`*|(5$
+0x0B7F04	6	U"8/a5
+0x0B7F65	5	 F/\\7
+0x0B7FF9	5	/(8T9
+0x0B80EF	5	@Y:.+
+0x0B81E1	5	1=;7<
+0x0B81EF	7	/j,R)z$
+0x0B81F7	7	 y V"l(
+0x0B826F	7	*x.)+{"
+0x0B85B1	5	&h$v!
+0x0B8605	6	&G&o  
+0x0B88C6	6	2 **7-
+0x0B898B	5	O4TZJ
+0x0B8997	8	*k1A0!(w
+0x0B8D5B	5	7n8K1
+0x0B8E51	5	241q)
+0x0B8FCF	5	&4)2+
+0x0B906B	6	4W-}!J
+0x0B911A	8	0'y3U8q5
+0x0B91B7	5	&\\%e$
+0x0B934A	5	o#R%D
+0x0B943E	6	)%h/n.
+0x0B9501	5	4B1N+
+0x0B9532	8	0"i'y(f 
+0x0B966C	5	~%f#K
+0x0B967B	5	#`.F4
+0x0B98F7	5	8(H5O
+0x0B996C	6	2&M/G4
+0x0B9973	5	4~2@)
+0x0B9AA8	6	/!5-N7
+0x0B9B57	5	&P&2 
+0x0B9CCF	5	.t0%/
+0x0B9EB3	8	-2.@+9#9
+0x0B9F89	6	,J*^"'
+0x0BA103	5	 7*X3
+0x0BA16B	7	004M.;%
+0x0BA455	5	*80",
+0x0BA565	5	/@7i7
+0x0BA761	5	"Z"S$
+0x0BA849	5	)P0_1
+0x0BAB29	5	 F/i;
+0x0BAB2F	5	@n>K5
+0x0BABAE	5	H&`&?
+0x0BAE05	9	"2(=*f,O)
+0x0BAF0B	5	7<=2:
+0x0BAFE5	5	0-=%B
+0x0BAFFA	6	2&>/>3
+0x0BB0D9	5	%p4r;
+0x0BB0ED	7	':2q9G9
+0x0BB1B3	6	AE2E!1
+0x0BB3C9	5	 j%2+
+0x0BB627	6	G@5=#X
+0x0BB711	5	(99j@
+0x0BBAF5	7	)*%=#D!
+0x0BBBE3	5	+^0|2
+0x0BBEC9	9	@5G.Dm:s*
+0x0BC1AA	6	^-s91<
+0x0BC689	5	"g'-*
+0x0BC7B3	6	"x%r#!
+0x0BC902	6	S"E,H*
+0x0BCA57	5	+_6a8
+0x0BCB91	6	8X14"@
+0x0BCC55	5	8T/> 
+0x0BCCCB	5	('2f0
+0x0BCE35	8	/73%.e"8
+0x0BCE67	5	<S3^"
+0x0BCEAE	5	B&c%M
+0x0BCF6D	5	"I&^#
+0x0BD061	5	'^+a%
+0x0BD139	5	3IDuK
+0x0BD13F	5	F'8#!
+0x0BD22F	5	,X1C0
+0x0BD327	7	(-+N)[%
+0x0BD519	6	-!+_&p
+0x0BD5F2	10	F l(B,o,M(
+0x0BD707	5	0a/3(
+0x0BD7E5	5	!~#h$
+0x0BDBAB	5	'G.-0
+0x0BDF87	7	&\\.//_(
+0x0BE16E	6	}.m7W6
+0x0BE355	5	"^'g)
+0x0BEAD5	5	$w'E*
+0x0BEFA7	8	!T#K"@ U
+0x0BF09F	5	. 2c0
+0x0BF197	5	$q&[%
+0x0BF28F	5	0F240
+0x0BF47D	5	..0M0
+0x0BF84E	10	L%c.13>05(
+0x0BFA67	5	%g$'!
+0x0BFB57	7	 p%$&Y&
+0x0BFC1E	6	F"7#V!
+0x0BFE31	7	"S&b%p"
+0x0BFE80	6	A g$)%
+0x0BFEFD	5	!p$1"
+0x0C0019	5	!h&R%
+0x0C186A	5	LIST6
+0x0C1872	9	INFOINAM*
+0x0C18A8	5	RIFFR
+0x0C18B0	8	WAVEfmt 
+0x0C19AA	6	)LGUA)
+0x0C19F2	5	D8}(s
+0x0C1A17	6	3hY#C2
+0x0C1A6D	5	:&Ik(
+0x0C1B08	6	1/H@!$
+0x0C1B2E	6	v*8<&%
+0x0C1BCA	7	y%b83%Q
+0x0C1C76	5	=3:-b
+0x0C1FC4	5	LIST6
+0x0C1FCC	9	INFOINAM*
+0x0C2019	5	"Exif
+0x0C203E	13	Lavc58.91.100
+0x0C214B	45	%&'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x0C2226	43	&'()*56789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x0C254E	5	Y-@9 
+0x0C2618	5	K0.TD
+0x0C2A35	5	ky<}{
+0x0C2A8C	6	YmLNcx
+0x0C2C74	5	FO0K&
+0x0C2E36	5	E1A1e
+0x0C2E7C	5	$BYVS
+0x0C2EA9	5	+okeo
+0x0C2EF8	5	dGee*
+0x0C35C0	5	\\\\HZY
+0x0C3755	5	EEUDD
+0x0C3786	6	yL7QC#
+0x0C37B4	9	K=SN]z&m:
+0x0C3932	5	eV(YT
+0x0C39C7	5	jGX}7
+0x0C3BE6	5	"Exif
+0x0C3C0B	13	Lavc59.18.100
+0x0C3D18	45	%&'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x0C3DF3	43	&'()*56789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x0C4094	7	)!u t*j
+0x0C40FE	9	swt#EO2iZ
+0x0C4180	5	}}s}5
+0x0C4305	5	=k{xc
+0x0C4354	5	5M[F(
+0x0C43C8	5	RmA(E
+0x0C47F5	5	:ic;E
+0x0C4933	5	=FEtV
+0x0C49B8	7	/}yo}"i
+0x0C4E28	5	|)ze}
+0x0C5028	5	&VLnC
+0x0C5156	5	FOKH`
+0x0C520A	6	w!FONk
+0x0C528A	5	4V2WM
+0x0C5290	5	FVw?t
+0x0C53CF	8	V(#f88RE
+0x0C5591	5	om4CN
+0x0C56E2	5	QEQ!E
+0x0C5903	5	"Exif
+0x0C5928	13	Lavc59.18.100
+0x0C5A35	45	%&'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x0C5B10	43	&'()*56789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x0C5DA4	5	M1<Cn
+0x0C5F8F	7	Ed3$n64
+0x0C5FE5	5	\\_X|F
+0x0C615D	5	GKk}E
+0x0C63C3	5	Ky2x[
+0x0C6429	5	I#ued
+0x0C653D	5	AR~e 
+0x0C6545	5	2?*|W
+0x0C657F	5	UO~)v
+0x0C65A7	5	S|hWp
+0x0C6642	5	]WO-=
+0x0C6913	5	U~Vg)
+0x0C6B2E	5	A2F]<
+0x0C6BD3	5	=jM&m
+0x0C6D88	6	]~4udk
+0x0C6E12	6	HcLL_c
+0x0C6F40	6	QEhHQE
+0x0C703A	5	I<)dn
+0x0C70AF	5	Un&Cr
+0x0C7170	6	GWeue8
+0x0C7208	5	E<RG"
+0x0C7242	6	>i#rO-
+0x0C764C	5	"Exif
+0x0C7671	13	Lavc58.91.100
+0x0C777E	45	%&'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x0C7859	43	&'()*56789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x0C7A76	5	G:u?u
+0x0C7BEE	6	H&MB]8
+0x0C7BFF	5	;E V(
+0x0C7F7D	5	mF-)5
+0x0C80EA	6	7F>%A9
+0x0C857C	8	%o*eW\\yJ
+0x0C8717	5	$m"[]
+0x0C8A3D	5	M.}67
+0x0C8E50	5	Aos{=
+0x0C8E5F	5	-cuVX
+0x0C9002	5	gO,]O
+0x0C9016	5	X~\\Q@
+0x0C90EF	5	%yZY%
+0x0C940B	5	FExif
+0x0C954F	45	%&'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x0C962A	43	&'()*56789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz
+0x0C99EC	5	/J,?j
+0x0C9ACA	6	Z2q*)F
+0x0C9CCD	8	C4"@d@dC
+0x0C9CDC	5	=i>#k
+0x0C9DB4	5	cs,\\#
+0x0C9E31	5	@{Cp_
+0x0C9FA6	6	[{HN)U
+0x0CA071	5	yo~Kr
+0x0CA293	6	.w*0;J
+0x0CA2BA	7	MwM3|>*
+0x0CA647	13	1.0.0.220714J
+0x0CC0C8	8	@@@@@@@@
+0x0CC142	6	   @@@
+0x0CC158	10	<BBBBBBBB<
+0x0CC1D0	5	> @|B
+0x0CC1E8	10	<BB@\\bBBB<
+0x0CC218	10	<BBB<BBBB<
+0x0CC230	6	<BBBF:
+0x0CC391	6	@@@@ @
+0x0CC3E0	10	@@@@@@@@@@
+0x0CC440	10	@@@@@@@@@~
+0x0CC463	14	Q@Q@Q@J@J@D@D@
+0x0CC4C1	13	@@@@@@@@@@@@ 
+0x0CC521	13	@@@@@@@@@@B@!
+0x0CC710	10	@@@\\bBBBb\\
+0x0CC72B	7	8D@@@D8
+0x0CC743	7	:FBBBF:
+0x0CC75B	7	<BB~@B<
+0x0CC774	6	@@@@@@
+0x0CC78B	7	:FBBBF:
+0x0CC7A0	10	@@@\\bBBBBB
+0x0CC7BB	7	@@@@@@@
+0x0CC7D3	9	@@@@@@@@@
+0x0CC7E8	10	@@@DHPpHDB
+0x0CC800	10	@@@@@@@@@@
+0x0CC825	12	f@D@D@D@D@D@
+0x0CC84B	7	\\bBBBBB
+0x0CC863	7	<BBBBB<
+0x0CC87B	10	\\bBBBb\\@@@
+0x0CC893	7	:FBBBF:
+0x0CC8AB	7	X`@@@@@
+0x0CC8DC	6	@@@@@0
+0x0CC8F3	7	BBBBBF:
+0x0CCB63	7	8D@@@D8
+0x0CCB7B	7	<BB~@B<
+0x0CCB93	7	<BB~@B<
+0x0CCBAB	7	<BB~@B<
+0x0CCBC3	7	@@@@@@@
+0x0CCBDB	7	@@@@@@@
+0x0CCBF3	7	@@@@@@@
+0x0CCC0B	7	\\bBBBBB
+0x0CCC23	7	<BBBBB<
+0x0CCC3B	7	<BBBBB<
+0x0CCC53	7	BBBBBF:
+0x0CCC9B	7	8D@@@D8
+0x0CCCE3	7	8D@@@D8
+0x0CCCFB	7	<BB~@B<
+0x0CCD13	7	<BB~@B<
+0x0CCD2B	7	:FBBBF:
+0x0CCD43	7	@@@@@@@
+0x0CCD58	5	@@@`@
+0x0CCD73	7	\\bBBBBB
+0x0CCD8B	7	X`@@@@@
+0x0CCE1C	6	@@@@@0
+0x0CCE90	10	@@@@@@@@@@
+0x0CCFB0	10	CDHHpHDDBA
+0x0CD003	14	Q@Q@Q@J@J@D@D@
+0x0CD061	13	@@@@@@@@@@@@ 
+0x0CD183	9	D@D@D@D@$
+0x0CD251	9	 @\\bBBBB<
+0x0CD26B	7	xDDxDDx
+0x0CD283	7	p@@@@@@
+0x0CD29B	6	>""""B
+0x0CD2B3	7	<BB~@B<
+0x0CD313	7	BFJJRbB
+0x0CD32B	7	BFJJRbB
+0x0CD343	7	LPP`PHD
+0x0CD35B	6	~BBBBB
+0x0CD3A3	7	BBB~BBB
+0x0CD3BB	7	<BBBBB<
+0x0CD3D3	7	~BBBBBB
+0x0CD3EB	10	\\bBBBb\\@@@
+0x0CD403	7	8D@@@D8
+0x0CD41C	6	      
+0x0CD455	11	N@D@D@D@N@5
+0x0CD493	6	BBBBBB
+0x0CD4AB	5	DDDD<
+0x0CD4CB	12	D@D@D@D@D@D@
+0x0CD4FB	12	D@D@D@D@D@D@
+0x0CD583	7	@@@xDDx
+0x0CD5FB	7	<BB~@B<
+0x0CD613	7	8D@p@D8
+0x0CD62B	7	@@@@@@@
+0x0CD643	7	@@@@@@@
+0x0CD764	6	      
+0x0CD77C	6	`@@@@@
+0x0CD793	7	|BBBBBB
+0x0CD7AB	7	LBBBBB<
+0x0CD823	7	|BBBBB~
+0x0CD83B	7	\\"""BBN
+0x0CD854	9	         
+0x0CD884	6	BBBBB<
+0x0CD89B	5	BB""$
+0x0CD8FE	7	BDHP@@@
+0x0CD95C	5	BBBBB
+0x0CD9A0	10	@@@@@@@@@@
+0x0CD9CB	5	@@@@@
+0x0CD9F0	5	 @@@ 
+0x0CDA21	5	,@@@@
+0x0CDA32	8	<BB"BBBB
+0x0CDB41	15	< B B " B b R #
+0x0CDB89	11	<@B@B@"@B@b
+0x0CDC12	8	<BB"BbR"
+0x0CDDC2	8	"RbB2BB~
+0x0CDDF5	5	:FbR"
+0x0CDE22	8	<BBJV*""
+0x0CDE6D	5	:FbR"
+0x0CDEB5	5	"RbB~
+0x0CDFBA	8	@@@@@`P 
+0x0CDFD2	8	DDDDDfU"
+0x0CE0C2	6	~BBBB~
+0x0CE16B	11	 @ `       
+0x0CE1D7	9	8`H H J`9
+0x0CE563	7	 @ @ @#
+0x0CE56B	6	.p<H4@
+0x0CE624	5	`0 f 
+0x0CE656	7	 8@(@Hp
+0x0CE922	5	   @@
+0x0CED0B	7	 8 ( 8 
+0x0CF314	5	 2 Q 
+0x0CF342	6	@4@0@W
+0x0CF4FD	5	$@$`/
+0x0CF529	5	/ - +
+0x0CF55D	5	#P<H#
+0x0CF6AB	5	,P00 
+0x0CF739	5	,P8P 
+0x0CF7BA	5	 B $@
+0x0CF7CB	5	$@$@G
+0x0CF87D	8	UPUPUPUP
+0x0CF887	7	UPUPUPU
+0x0CF90D	15	)P*P>P"P>P"P>P"
+0x0CFA31	8	?(?(%(?(
+0x0CFBB7	9	>`"`"@>`b
+0x0CFCDA	5	H%HDx
+0x0CFD2A	10	 <  `?|!H?
+0x0CFD35	13	 (/0)0)0)0OHI
+0x0CFD61	5	UpVpT
+0x0D0034	5	08`H@
+0x0D0181	5	&0!`/
+0x0D0187	5	!@!@'
+0x0D018D	6	!@C@L@
+0x0D041D	5	! ?`?
+0x0D0511	5	4 6`2
+0x0D059D	8	$@t@}HmH
+0x0D05D5	5	)h/hC
+0x0D08AA	6	P'p/ !
+0x0D090A	6	p/p)P?
+0x0D093A	6	`2`"`<
+0x0D095A	6	@>@"@>
+0x0D098B	6	J@,@~x
+0x0D0998	5	`~`$`
+0x0D0A83	7	H J y H
+0x0D0ADD	5	$ $ '
+0x0D0EA3	6	7x}PmP
+0x0D0FC0	5	@bH4x
+0x0D1020	5	HdP$@
+0x0D11AA	8	`%P*H,HQ
+0x0D12BE	7	@4@8@P@
+0x0D12CC	6	@$@ @A
+0x0D13BD	6	#P&L@@
+0x0D13EC	7	@0@ @@@
+0x0D1419	6	J`J`L`
+0x0D1501	5	" " ?
+0x0D1507	5	" " ?
+0x0D1531	5	)()(/
+0x0D1537	5	)()(/
+0x0D1561	5	-`<`-
+0x0D1687	5	jH*H+
+0x0D16AF	5	%P&@C
+0x0D1800	6	 r@#pS
+0x0D186B	5	4 6 W
+0x0D18BD	5	%(iP:
+0x0D18CB	5	T@T@W
+0x0D194F	7	* Z rp#
+0x0D1B5A	5	 D "@
+0x0D1B94	5	 0 P 
+0x0D1DA3	5	*`>x*
+0x0D1DAD	6	" b F 
+0x0D1E6A	8	P{HK(}(I
+0x0D1E99	5	{PKPM
+0x0D206F	5	) * _
+0x0D209A	6	@>@"@*
+0x0D20A5	8	+P*p*`*`
+0x0D20D5	9	( ) ) ) B
+0x0D2190	6	x?H)p?
+0x0D23D8	11	H>H"H"x>@"@
+0x0D252D	5	6 ? h
+0x0D263F	5	! ! ?
+0x0D2769	5	,H8( 
+0x0D27C7	11	I y C B D H
+0x0D2823	5	8@$@'
+0x0D2829	9	<P!H"L$D!
+0x0D2A2B	5	>@( ?
+0x0D2A31	7	( > ( >
+0x0D2A39	7	& . . c
+0x0D2ABD	5	2P*P&
+0x0D2C7A	5	H0H@H
+0x0D2CDB	6	0`  0`
+0x0D2D9B	5	    ?
+0x0D2DF8	7	 ! " B 
+0x0D2E1A	10	      8  ?
+0x0D2E4A	10	      8  ?
+0x0D2E7A	10	H H H H H#
+0x0D2E85	8	 H H#H<H
+0x0D2F3C	14	 ?        8  #
+0x0D2F6D	11	       8  ?
+0x0D300B	6	0`  0`
+0x0D3154	10	 ?  8    #
+0x0D3184	13	H>x H H H#H<H
+0x0D3217	8	 H H#H<H
+0x0D33EA	13	H>H"H"H"x"H>H
+0x0D344C	10	H>H"H"H"H#
+0x0D3457	8	"H"H"H>H
+0x0D347A	6	(>("(#
+0x0D3481	6	"("(>(
+0x0D34DF	9	        ?
+0x0D350D	7	      ?
+0x0D356A	13	 ! ! ?8! ! ? 
+0x0D359A	13	 ! ! ?8! ! ? 
+0x0D35CB	18	!H!H!H!H?x!H!H!H?H
+0x0D36B9	7	      ?
+0x0D36C1	5	    ?
+0x0D36E9	5	    ?
+0x0D36EF	5	    ?
+0x0D3719	5	    ?
+0x0D3749	5	    ?
+0x0D37E6	5	p4@b@
+0x0D3938	7	H6H"HAH
+0x0D3964	5	P"PAP
+0x0D3BD0	9	 ! ! !8! 
+0x0D3BFC	9	 3 !8! 3 
+0x0D3C2C	9	 3 !8! 3 
+0x0D3C5C	9	 3 !8! 3 
+0x0D3DDC	6	P8P(PE
+0x0D3DE3	5	DPDPE
+0x0D3E0E	7	@      
+0x0D3E3D	6	0`  0`
+0x0D3E6C	5	 ! ! 
+0x0D3E9E	7	@      
+0x0D3ECD	6	0`  0`
+0x0D3EFD	6	0`  0`
+0x0D3F5D	6	0`  0`
+0x0D3FCB	5	    ?
+0x0D4118	6	 2 ! @
+0x0D4142	5	 2 A 
+0x0D4172	5	 2 A 
+0x0D41A8	6	H2H!H@
+0x0D42C8	6	(2(!(@
+0x0D438B	6	0`  0`
+0x0D456B	6	0`  0`
+0x0D473F	11	    ?  8  #
+0x0D476C	14	H?H H H?H x H!
+0x0D47FA	8	(?( (>( 
+0x0D482A	6	(?( (?
+0x0D4831	5	 ( (?
+0x0D4A76	7	p"@"@"@
+0x0D4AA2	5	 !8! 
+0x0D4AD2	5	8! ! 
+0x0D4B06	7	x3H!H3H
+0x0D4B32	5	x!H!H
