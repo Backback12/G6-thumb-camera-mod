@@ -61,7 +61,7 @@ function patchImage(source, patches, timestamp) {
   b.writeUInt32LE(timestamp, 0x14); // Full little-endian Unix timestamp, not just its low byte.
   return b.subarray(0, SIZE - 1); // Remove exactly the final FF; never trim the entire FF tail.
 }
-function presets(source) {
+function presets(source, round = 1) {
   const active = [0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x20, 0x21];
   const normal = { id: 0, label: 'Normal', detail: 'Original mode-dependent baseline.' };
   const make = (folder, title, summary) => ({ folder, title, summary, filters: [normal], patches: [] });
@@ -77,10 +77,54 @@ function presets(source) {
     build.patches.unshift(...cycle(source, build.filters.slice(1).map(f => f.id)));
     return build;
   }
+  if (round === 2) {
+    const matrix = make('filters-04-matrix-fields', 'Matrix sign and offset fields',
+      'Identity control, red-coefficient sign boundary, then large equal-channel offset changes.');
+    const probes = [
+      ['Identity', 256, 0, 'Fixed RGB identity; compare every probe with position 1.'],
+      ['Red coefficient 511', 511, 0, 'Largest positive signed-10-bit value, if signed; expect stronger red.'],
+      ['Red coefficient 512', 512, 0, 'Sign boundary: red loss/clipping supports signed encoding; brighter red supports unsigned.'],
+      ['Red coefficient 1023', 1023, 0, 'Encoded -1 in signed two\'s complement, nearly 4x if unsigned. Green/blue stay at 256.'],
+      ['All offsets 63', 256, 63, 'Largest positive signed-7-bit value, if signed; compare with identity.'],
+      ['All offsets 64', 256, 64, 'Offset sign boundary, if signed; compare directly with position 5.'],
+      ['All offsets 127', 256, 127, 'Encoded -1 in signed two\'s complement; compare with identity and position 5.'],
+    ];
+    probes.forEach(([label, red, offsetValue, detail], i) => {
+      const offset = 0x816D6 + i * 24, data = Buffer.alloc(24);
+      [red,0,0, 0,256,0, 0,0,256, offsetValue,offsetValue,offsetValue]
+        .forEach((v, j) => data.writeUInt16LE(v, j * 2));
+      effect(matrix, active[i], 'matrix', offset);
+      add(matrix, offset, data, label);
+      matrix.filters.push({ id: active[i], label, detail });
+    });
+    const color = make('filters-05-color-fields', 'Contrast and adjacent color fields',
+      'Fixed word-2 brightness of 128; isolate words 0, 1 and 3 with large changes.');
+    const controls = [
+      ['Fixed control', null, 128, 'Words 0..3 all 128; not assumed identical to Normal.'],
+      ['Word 0 = 0', 0, 0, 'Compare black/white separation with position 1; brightness word 2 stays 128.'],
+      ['Word 0 = 255', 0, 255, 'Compare directly with positions 1 and 2 for contrast/gain behavior.'],
+      ['Word 1 = 0', 1, 0, 'Unknown field at B15C[15:8]; report any tint, brightness or unchanged image.'],
+      ['Word 1 = 255', 1, 255, 'Opposite endpoint of word 1; all other words match position 1.'],
+      ['Word 3 = 0', 3, 0, 'Unknown field at B15C[7:0]; compare with position 1.'],
+      ['Word 3 = 255', 3, 255, 'Opposite endpoint of word 3; all other words match position 1.'],
+    ];
+    controls.forEach(([label, word, value, detail], i) => {
+      // Four inactive edge/parameter records, then three records in the unused 1F-only tone table.
+      const offset = i < 4 ? 0x81614 + i * 88 : 0x8DF20 + (i - 4) * 88;
+      const data = Buffer.from(source.subarray(0xA3D8, 0xA430));
+      for (let j = 0; j < 4; j++) data.writeUInt32LE(128, j * 4);
+      if (word !== null) data.writeUInt32LE(value, word * 4);
+      effect(color, active[i], 'color', offset);
+      add(color, offset, data, label);
+      color.filters.push({ id: active[i], label, detail });
+    });
+    return [matrix, color].map(finish);
+  }
+  check(round === 1, 'Unknown test round.');
   const curve = make('filters-01-curve', '17-value curve', 'Large strength changes and broad index bands; other stages restore baseline.');
   const vectors = [
     ['All 0', Array(17).fill(0), 'Zero control.'],
-    ['All 31', Array(17).fill(31), 'Maximum 5-bit value; compare directly with position 2.'],
+    ['All 31', Array(17).fill(31), 'Maximum 5-bit value; compare directly with position 1.'],
     ['All 8', Array(17).fill(8), 'Low fixed strength.'],
     ['All 16', Array(17).fill(16), 'Middle fixed strength; not assumed identical to Normal.'],
     ['Indices 0..5 only', Array.from({ length: 17 }, (_, i) => i <= 5 ? 31 : 0), 'Low index band at 31; everything else 0.'],
@@ -101,7 +145,7 @@ function presets(source) {
     ['Component 2 only', [0,0,0, 0,0,0, 0,0,256], [0,0,0], 'Only the last diagonal component passes.'],
     ['Swap 0 and 2', [0,0,256, 0,256,0, 256,0,0], [0,0,0], 'Swap the outer components; identify their visible colors.'],
     ['Copy component 0', [256,0,0, 256,0,0, 256,0,0], [0,0,0], 'Repeat one record row; tests matrix orientation and component meaning.'],
-    ['Identity + offsets 32', [256,0,0, 0,256,0, 0,0,256], [32,32,32], 'Large offset change; compare with position 2.'],
+    ['Identity + offsets 32', [256,0,0, 0,256,0, 0,0,256], [32,32,32], 'Large offset change; compare with position 1.'],
   ];
   matrices.forEach(([label, coefficients, offsets, detail], i) => {
     const offset = 0x816D6 + i * 24, data = Buffer.alloc(24);
@@ -120,7 +164,7 @@ function presets(source) {
     data.writeUInt32LE(value, word * 4);
     effect(color, active[i], 'color', offset);
     add(color, offset, data, `88-byte word ${word} = ${value}`);
-    color.filters.push({ id: active[i], label: `Word ${word} = ${value}`, detail: `Only word ${word} differs from position 3; ${word === 2 ? 'brightness/EV-related' : 'contrast/gain hypothesis'}.` });
+    color.filters.push({ id: active[i], label: `Word ${word} = ${value}`, detail: `Only word ${word} differs from position 2; ${word === 2 ? 'brightness/EV-related' : 'contrast/gain hypothesis'}.` });
   });
   color.filters.push({ id: 0x01, label: 'Original grayscale', detail: 'Original matrix at 0x8177E is retained.' });
   // Four 88-byte records reuse only inactive edge/parameter templates, ending at 0x81774.
@@ -133,9 +177,15 @@ function writeOutput(filename, data, force) {
   fs.mkdirSync(path.dirname(filename), { recursive: true });
   fs.writeFileSync(filename, data);
 }
-function catalog(outDir, source, results) {
+function catalog(outDir, source) {
+  const results = [...presets(image(source), 1), ...presets(image(source), 2)].flatMap(build => {
+    const filename = path.join(outDir, build.folder, NAME);
+    if (!fs.existsSync(filename)) return [];
+    const data = fs.readFileSync(filename);
+    return [{ build, data, timestamp: data.readUInt32LE(0x14) }];
+  });
   const lines = ['# Firmware test builds', '',
-    'Flash the three filter builds in order 01 -> 02 -> 03. Follow the hardware requirement that each timestamp must be newer than the installed firmware. Rebuild before repeating an earlier test; its old file will have an older timestamp.', '',
+    'Next round: **04 -> 05**. Each timestamp must be newer than the installed firmware (last reported: build 03, Unix **1795244473**). Rebuild before repeating an older test.', '',
     `Source: original backup, SHA-256 \`${sha(source)}\`. New files are **1,048,575 bytes**: full little-endian Unix timestamp at \`0x14..0x17\`, then exactly one final \`FF\` removed. Asset bytes are original.`, '',
     '| Folder | Unix timestamp | UTC | Description |', '| --- | ---: | --- | --- |'];
   for (const folder of ['2A', '2B', '2C']) {
@@ -146,21 +196,22 @@ function catalog(outDir, source, results) {
     }
   }
   for (const r of results) lines.push(`| [${r.build.folder}](${r.build.folder}/${NAME}) | ${r.timestamp} | ${new Date(r.timestamp * 1000).toISOString()} | ${r.build.title}; Normal + 7 test filters. |`);
-  lines.push('', 'Rebuild: `node tests/tools/patch_g6.js --tests --force`. If the installed timestamp is higher, add `--min-timestamp NUMBER`. The helper chooses timestamps above that value and existing test files, increasing by one second per build. The binary header, not the folder name, identifies the update.', '',
-    'All three builds are untested on hardware. Button behavior is original apart from the filter cycle length. Start in photo mode after a fresh boot: position 1 is Normal; tap Down to advance, Up to reverse. Both directions wrap through exactly eight positions.', '',
-    'Keep a fixed scene and lighting, including gray, white, black and red/green/blue objects. Compare live view and saved JPEG; optionally repeat in video. Report `folder / position / visible change`. A black, white or unchanged result is useful evidence. Do not change EV/WB between comparisons.', '');
+  lines.push('', 'Rebuild this round: `node tests/tools/patch_g6.js --tests --round 2 --force`. Use `--round 1` for 01..03. If needed, add `--min-timestamp NUMBER`. Timestamps exceed the minimum and all existing known filter builds; each output increases by one second. Earlier binaries are preserved unless their round is explicitly rebuilt.', '',
+    'Recipes 01..03 have owner feedback agreeing between live view and saved photos; 04..05 await hardware testing. See [observations and confidence](../tests/FILTERS_Plan.md#hardware-feedback-round-1). Button behavior is original apart from cycle length.', '',
+    '**Position 0 = startup Normal**, then seven short Down presses select 1..7; the eighth returns to 0. Up reverses. The previous catalog used 1..8 labels; these tables now use 0..7 to match the hardware log. The owner confirmed the extra 8 in the curve log was a numbering error.', '',
+    'Use a fixed scene with gray/white/black and red/green/blue objects. Rough visible differences are sufficient; no narrow band measurements are requested. For 04/05, compare each probe with position 1. Keep EV/WB fixed, allow exposure to settle, and report `folder / position / visible change` (including unchanged, black or clipped).', '');
   for (const r of results) {
     lines.push(`## ${r.build.folder}`, '', r.build.summary, '', '| Position | Effect ID | Test | What to compare |', '| ---: | --- | --- | --- |');
-    r.build.filters.forEach((f, i) => lines.push(`| ${i + 1} | \`${f.id.toString(16).toUpperCase().padStart(2, '0')}\` | ${f.label} | ${f.detail} |`));
+    r.build.filters.forEach((f, i) => lines.push(`| ${i} | \`${f.id.toString(16).toUpperCase().padStart(2, '0')}\` | ${f.label} | ${f.detail} |`));
     lines.push('', `SHA-256: \`${sha(r.data)}\`.`, '');
   }
-  lines.push('Build 03 repurposes inactive edge/parameter templates at `0x81614..0x81773`; its eight selected effects do not use the overwritten kernels/matrices/17-byte records. Original grayscale at `0x8177E` remains intact. Nothing is placed in unused flash tail space.', '',
-    'Technical details: [filters](../tests/FILTERS.md), [modding map and patch recipes](../tests/analysis/MODDING.md).', '');
+  lines.push('Build 03 repurposes inactive templates at `0x81614..0x81773`. Build 05 uses the same area for four 88-byte records and `0x8DF20..0x8E027` for three more, replacing part of the unused ID-1F-only tone table. Neither build selects edge/1F effects; grayscale matrix `0x8177E`, baseline tone table `0x8DD20`, and media remain intact. No flash-tail allocation or convolution tests are included.', '',
+    'Technical details: [filter findings](../tests/FILTERS.md), [analysis and test plan](../tests/FILTERS_Plan.md), [patch recipes](../tests/analysis/MODDING.md).', '');
   return lines.join('\n');
 }
 function main(argv) {
   const flags = new Set(['--tests', '--force', '--dry-run', '--help']);
-  const values = new Set(['--input', '--recipe', '--cycle', '--output', '--out-dir', '--timestamp', '--min-timestamp']);
+  const values = new Set(['--input', '--recipe', '--cycle', '--output', '--out-dir', '--timestamp', '--min-timestamp', '--round']);
   const args = {};
   for (let i = 0; i < argv.length; i++) {
     const key = argv[i];
@@ -168,29 +219,30 @@ function main(argv) {
     args[key] = flags.has(key) ? true : argv[++i];
     check(args[key] !== undefined, `Missing value for ${key}`);
   }
-  if (args['--help']) return console.log('node tests/tools/patch_g6.js --tests [--force] [--dry-run] [--min-timestamp UNIX]\nnode tests/tools/patch_g6.js --input FILE --recipe JSON --output bin/FOLDER/hx330x_sdk.bin\nOptional: --cycle "01,06,19,1A,1D,27,2A" --timestamp UNIX');
+  if (args['--help']) return console.log('node tests/tools/patch_g6.js --tests [--round 1|2] [--force] [--dry-run] [--min-timestamp UNIX]\nnode tests/tools/patch_g6.js --input FILE --recipe JSON --output bin/FOLDER/hx330x_sdk.bin\nOptional: --cycle "01,06,19,1A,1D,27,2A" --timestamp UNIX');
   const input = path.resolve(args['--input'] || ORIGINAL), source = fs.readFileSync(input), full = image(source);
   const minimum = Math.max(full.readUInt32LE(0x14), Number(args['--min-timestamp'] || 0));
   check(Number.isInteger(minimum) && minimum >= 0, 'Invalid minimum timestamp.');
   if (args['--tests']) {
     check(!args['--recipe'] && !args['--cycle'] && !args['--output'], '--tests cannot combine recipe/cycle/output overrides.');
     check(sha(source) === SHA256, 'Filter test presets require the exact original backup.');
-    const outDir = path.resolve(args['--out-dir'] || path.join(ROOT, 'bin')), builds = presets(full);
+    const outDir = path.resolve(args['--out-dir'] || path.join(ROOT, 'bin')), builds = presets(full, Number(args['--round'] || 1));
     let latest = minimum;
-    for (const build of builds) {
+    for (const build of [...presets(full, 1), ...presets(full, 2)]) {
       const file = path.join(outDir, build.folder, NAME);
       if (fs.existsSync(file)) latest = Math.max(latest, fs.readFileSync(file).readUInt32LE(0x14));
-      check(args['--force'] || !fs.existsSync(file), `${file} exists; use --force.`);
+      if (builds.some(b => b.folder === build.folder)) check(args['--force'] || !fs.existsSync(file), `${file} exists; use --force.`);
     }
     const start = args['--timestamp'] ? Number(args['--timestamp']) : Math.max(Math.floor(Date.now() / 1000), latest + 1);
     check(start > latest, 'Build timestamps must exceed all existing test timestamps and the installed minimum.');
     const results = builds.map((build, i) => ({ build, timestamp: start + i, data: patchImage(full, build.patches, start + i) }));
     if (!args['--dry-run']) {
       for (const r of results) writeOutput(path.join(outDir, r.build.folder, NAME), r.data, args['--force']);
-      fs.writeFileSync(path.join(outDir, 'README.md'), catalog(outDir, source, results));
+      fs.writeFileSync(path.join(outDir, 'README.md'), catalog(outDir, source));
     }
     for (const r of results) console.log(`${r.build.folder}: timestamp ${r.timestamp}, ${r.data.length} bytes, ${sha(r.data)}`);
   } else {
+    check(!args['--round'], '--round requires --tests.');
     check(args['--output'] && (args['--recipe'] || args['--cycle']), 'Supply --tests, or a recipe/cycle and --output.');
     const recipe = args['--recipe'] ? JSON.parse(fs.readFileSync(args['--recipe'], 'utf8')) : {};
     if (recipe.source_sha256) check(sha(source) === recipe.source_sha256.toLowerCase(), 'Recipe source SHA-256 differs.');

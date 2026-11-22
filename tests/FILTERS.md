@@ -1,197 +1,47 @@
 # Camera filters
 
-**Camera:** 26 visible states, including normal, as observed by the owner. **Firmware:** reset ID `00` plus 26 IDs at `0x7C504`: **27 selectable positions**. Both directions at `0x398E4` include the last ID `2C`; no skip was found. IDs `01/26` select the same stages, and `20/24` have byte-identical 17-byte records: 25 distinct parameter combinations. This does not fully resolve the reported sequence. The mapping below assumes down-arrow follows the table forward; numbering near the end remains tentative. ID `2C` has **no separately observed camera state**.
+Offsets refer to `original/backup1.bin` (SHA-256 `278551ea79d1485115e52d2e4e2ad49ce8aa616bedd6babd15d194a41e286184`). Flash pointers are `0x06000000 + offset`. These are ISP records, not a named database API. Hardware observations agree between live view and saved photos; video is untested.
 
-## Observed appearance and likely ID
+**Confidence:** High = controlled hardware results and matching bytes; Medium = supported interpretation with unresolved details; Unknown = storage decoded, visible meaning unresolved. Exact storage widths below are verified from code even where the effect is unknown. Raw observations, assembly detail and experiments: [FILTERS_Plan.md](FILTERS_Plan.md).
 
-| # | Appearance | ID |
-| ---: | --- | --- |
-| 1 | Normal | `00` |
-| 2 | Black/red | `18` |
-| 3 | Grayscale | `01` |
-| 4 | Red sepia | `04` |
-| 5 | Green tint | `02` |
-| 6 | Blue tint | `05` |
-| 7 | Near normal, warmer? | `19` |
-| 8 | Red/blue, green suppressed | `1A` |
-| 9 | Inverted | `06` |
-| 10 | Normal or lower saturation | `1B` |
-| 11 | Yellow, low saturation | `1C` |
-| 12 | Aqua | `1D` |
-| 13 | Bright, low saturation | `1E` |
-| 14 | Nearly black/white | `1F` |
-| 15 | Near normal, cooler? | `20` |
-| 16 | Similar, less blue? | `21` |
-| 17 | Similar, warmer? | `22` |
-| 18 | Aqua | `23` |
-| 19 | Near normal | `24` |
-| 20 | Low saturation | `25` |
-| 21 | More grayscale | `26` |
-| 22 | Black/white edges | `27` |
-| 23 | Black/white edges, less noise | `28` |
-| 24 | Black/white edges, still less noise | `29` |
-| 25 | Colored edges | `2A` |
-| 26 | Colored edges, less noise | `2B` |
+## Parameter map
 
-## Firmware parameters for every ID
-
-All record addresses are **file offsets** in `original/backup1.bin`. `base` means the routine restores that stage's mode-dependent baseline; it does **not** mean identity or zero. `Lx/y/z` selects three separate 256-byte LUTs, one per channel, rather than three numeric parameters. `K` is the shared 5×5 edge kernel at `0x81630` plus a zero second kernel at `0x81614`.
-
-| Camera # | ID | LUTs | Matrix (24 B) | 17-byte record | 88-byte record | Edge stage |
-| ---: | --- | --- | --- | --- | --- | --- |
-| 1 | `00` | base | base | base | base | base |
-| 2 | `18` | `L5/3/3` | `8177E` | base | base | base |
-| 3 | `01` | base | `8177E` | base | base | base |
-| 4 | `04` | `L0/2/2` | `8177E` | base | base | base |
-| 5 | `02` | `L2/0/2` | `8177E` | base | base | base |
-| 6 | `05` | `L2/2/0` | `8177E` | base | base | base |
-| 7 | `19` | base | `81766` | base | base | base |
-| 8 | `1A` | base | `8174E` | base | base | base |
-| 9 | `06` | `L1/1/1` | base | base | base | base |
-| 10 | `1B` | base | `81736` | `816C4` (all 6) | base | base |
-| 11 | `1C` | base | `8171E` | `816B0` (all 9) | base | base |
-| 12 | `1D` | base | `81706` | base | base | base |
-| 13 | `1E` | base | base | base | `A3D8` | base |
-| 14 | `1F` | base | base | `8169C` (all 0) | base | base |
-| 15 | `20` | base | base | `81688` (22–27) | base | base |
-| 16 | `21` | base | base | `81674` (all 11) | base | base |
-| 17 | `22` | base | `816EE` | base | base | base |
-| 18 | `23` | base | `816D6` | base | base | base |
-| 19 | `24` | base | base | `81660` (22–27) | base | base |
-| 20 | `25` | base | base | `8164C` (all 8) | base | base |
-| 21 | `26` | base | `8177E` | base | base | base |
-| 22 | `27` | base | `8177E` | base | base | `K + 0` |
-| 23 | `28` | base | `8177E` | base | base | `K + 20` |
-| 24 | `29` | base | `8177E` | base | base | `K + 40` |
-| 25 | `2A` | base | base | base | base | `K + 0` |
-| 26 | `2B` | base | base | base | base | `K + 20` |
-| Unobserved | `2C` | base | base | base | base | `K + 40` |
-
-## Parameter decoding
-
-Rechecked against the original bytes and the instruction words in the compressed assembly. These are ISP tables and RAM state, not a named filter database API. Evidence remains in [`analysis/filter_map.tsv`](analysis/filter_map.tsv), [`analysis/ghidra_focus.txt`](analysis/ghidra_focus.txt), and [`analysis/key_routines.txt`](analysis/key_routines.txt).
-
-### Channel LUTs
-
-Loader `0x168BC` establishes the previously unknown contents. Writer `0x4DDC8` copies one 256-byte table per channel to device memory `0x84600/0x84800/0x84A00`.
-
-| LUT | Source file offset | Exact mapping for input `x = 0..255` |
+| Record / field | Encoding and destination | Effect / confidence |
 | --- | --- | --- |
-| `L0` | `0x8E320` | `round(sqrt(256*x))`; lifts darker values |
-| `L1` | `0x8E520` | `255-x`; inversion |
-| `L2` | `0x8E420` | `x`; identity |
-| `L3` | `0x8E220` | Always `0` |
-| `L4` | `0x8E120` | Always `255` |
-| `L5` | Generated by `0x1683C`, argument 0 | `40` below 100, otherwise `255`, for indices `0..254` |
-| `L6` | Generated by `0x1683C`, argument 1 | `255` below 100, otherwise `40`, for indices `0..254` |
+| 17-byte curve, `p[0..16]` | One byte per entry; low 5 bits packed into `B168/B16C/B170` | **High:** saturation strength. All 0 gives grayscale; 8 lower saturation, 16 slightly higher, 31 strong saturation relative to Normal. **Medium:** brightness-dependent indexing; low indices affect brighter regions, high indices darker regions. Exact axis, boundaries and interpolation unknown. |
+| 24-byte matrix, words `0..8` | Nine LE `u16`, masked to 10 bits; coefficients packed by column into `B0E4/E8/EC` | **High:** RGB mixing, row order `[Rout; Gout; Bout]`, columns `[Rin,Gin,Bin]`; diagonal 256 behaves as identity. Red/blue swap and red-derived grayscale confirmed. **Medium:** signed coefficients with scale 256; negative encoding/clipping await isolation. |
+| Matrix words `9..11` | Three LE `u16`, low 7 bits to `B0F0` at bits `0,10,20` | **Unknown:** offset-like fields. Setting all to 32 produced no clear difference. Sign, units and enable conditions unresolved. |
+| 88-byte record, word `0` (`+0x00`) | Low byte of LE `u32` to `B15C[31:24]` | **Medium:** contrast/gain-like control. At fixed word 2 = 200, value 0 raised dark tones/washed out the image; 128 appeared near Normal, slightly brighter. Formula/pivot unknown. |
+| Word `1` (`+0x04`) | Low byte to `B15C[15:8]` | **Unknown:** adjacent color-control field; not yet isolated. |
+| Word `2` (`+0x08`) | Low byte to `B15C[23:16]` | **High:** digital brightness/EV bias. 0 darkened; 255 strongly brightened/clipped versus the 200 control. The EV code adjusts the same field by steps of 16 on one sensor path. Not a proven sensor-exposure-time control. |
+| Word `3` (`+0x0C`) | Low byte to `B15C[7:0]` | **Unknown:** adjacent color-control field; not yet isolated. |
+| Words `4..7` (`+0x10..1C`) | Low bytes to `B160`, byte order 0..3 | **Unknown:** four controls, original value 64 each. |
+| Words `8..11` (`+0x20..2C`) | Low bytes to `B164`, byte order 0..3 | **Unknown:** four controls, original value 64 each. |
+| Word `12` (`+0x30`) | Low byte to `B0FC[18:11]` | **Unknown:** original value 64. |
+| Words `13..20`, `21` | Adaptive gains and bucket divisor | Not consumed by the fixed-effect writer; baseline adaptation uses them. No individual visual mapping established. |
+| Channel LUT | 256 bytes per R/G/B channel, written to device memory `84600/84800/84A00` | **High:** channel value remapping. Four-level replacement gives posterization; source levels are exactly 0,85,170,255 per channel (up to 64 combinations at this stage, not RGB565). |
+| ID `1F` tone table | 256 LE `u16` at `8DF20`, range 0..1023; device memory `84400` | **Medium:** tone/contrast curve. Separate from saturation, but not hardware-isolated. |
+| Edge stage | Two 5x5 kernels, low 6 bits per coefficient; `B104..B128` | Convolution storage/path decoded. Signed interpretation, normalization and exact visual response remain unconfirmed. Stage values 1/2/3 change a separate 6-bit control to 0/20/40; its physical meaning is unknown. |
 
-The generator stops after index **254**; it does not initialize entry 255. Its runtime value is not established. LUTs `L5/6` are two-level threshold effects. Layout and observed tints support RGB channel order, but an isolated color-chart test is still needed.
+The blue-only matrix test showed noise/pixelation, but changed no spatial controls. This is an observed appearance, **not evidence of a pixel-size parameter**. Bright/middle/dark color retention in the saturation tests is likewise not spatial highpass/bandpass/lowpass filtering.
 
-There are **18 effects omitted from the cycling table**, accepted by `0x59478`. All use matrix `8177E`, baseline 17/88-byte stages and no edge stage:
+## Original records and selectors
 
-| ID | LUTs | ID | LUTs | ID | LUTs |
-| --- | --- | --- | --- | --- | --- |
-| `03` | `L0/0/2` | `07` | `L1/1/1` | `08` | `L1/1/2` |
-| `09` | `L1/1/3` | `0A` | `L1/1/4` | `0B` | `L2/2/4` |
-| `0C` | `L2/2/1` | `0D` | `L2/1/3` | `0E` | `L1/2/3` |
-| `0F` | `L5/5/5` | `10` | `L6/6/6` | `11` | `L6/6/5` |
-| `12` | `L6/6/3` | `13` | `L6/6/4` | `14` | `L5/5/4` |
-| `15` | `L5/5/6` | `16` | `L5/6/3` | `17` | `L6/5/3` |
-
-### Matrix: all 12 fields
-
-Writer `0x4D874` reads twelve little-endian 16-bit words. Words `0..8` are masked to 10 bits; words `9..11` to **7 bits**. With rows taken from record order:
-
-| Record | Coefficient rows | Offsets |
+| Stage | Pointer/selector table | Original records |
 | --- | --- | --- |
-| `8177E` | `[17,273,-42] / [17,273,-42] / [17,273,-42]` | `0,0,0` |
-| `81766` | `[410,0,0] / [0,333,0] / [0,0,256]` | `12,12,12` |
-| `8174E` | `[256,0,0] / [0,77,0] / [0,0,256]` | `12,12,12` |
-| `81736` | `[511,0,0] / [0,358,0] / [0,0,153]` | `12,12,12` |
-| `8171E` | `[256,0,0] / [0,179,0] / [0,0,0]` | `12,12,12` |
-| `81706` | `[128,0,0] / [0,256,0] / [0,0,256]` | `12,12,12` |
-| `816EE` | `[0,256,0] / [0,256,0] / [0,0,256]` | `0,0,0` |
-| `816D6` | `[156,0,0] / [0,256,0] / [0,256,0]` | `0,0,0` |
+| Edge | 44 bytes at `813D8` | Kernels `81614` (zero) and `81630` (perimeter +1, center `EF`, otherwise zero) |
+| RGB matrix | 44 LE pointers at `81404` | Eight 24-byte records at `816D6 + 24*i`, `i=0..7`; last (`8177E`) is shared grayscale |
+| Saturation | 44 LE pointers at `814B4` | 17-byte records at `8164C/81660/81674/81688/8169C/816B0/816C4` |
+| 88-byte controls | 44 LE pointers at `81564` | ID `1E`: file `A3D8`, words `0..3 = 255,128,200,128`; words `4..12 = 64` |
 
-`-42` interprets stored `0x03D6` as signed. Signed 10-bit coefficients and a scale of 256 are strong inferences; rounding, clipping, offset sign and exact component order remain unverified. The writer packs **columns** into `0xB0E4/E8/EC` at bits `0,10,20`; offsets go to `0xB0F0` at the same positions. Packing alone does not establish the hardware's multiplication convention. A zero matrix pointer restores baseline, not identity.
+Each pointer table uses index `effect ID - 1`. A zero pointer restores the sensor/mode-dependent baseline, which can differ from an identity/fixed control. Writers: matrix `4D874`, saturation `4EB74`, 88-byte controls `4E1D0`, channel LUT `4DDC8`, edge `4E6AC`; apply routine `59478`.
 
-### 17-byte curve
+Original channel LUTs: `8E320 = round(sqrt(256*x))`, `8E520 = 255-x`, `8E420 = x`, `8E220 = 0`, `8E120 = 255`. Two generated threshold LUTs switch between 40 and 255 at input 100; their generator leaves entry 255 uninitialized. Full ID/record mapping is in the [analysis notes](FILTERS_Plan.md#firmware-parameters-for-every-id).
 
-Writer `0x4EB74` packs `p[0..5]` into `0xB168`, `p[6..11]` into `0xB16C`, and `p[12..16]` into `0xB170`, consecutively in 5-bit fields. Every value is `p[i] & 31`; values above 31 wrap rather than clamp. Only 17 bytes are consumed; alignment padding is not part of the curve.
+## Custom filter selection
 
-**Saturation-strength curve remains a hypothesis.** The original all-zero example `1F` also changes a separate tone curve, so its appearance alone does not isolate this stage. The writer exposes no axis labels or interpolation rule. Baseline adaptive updater `0x58330` scales all 17 entries by a shared gain divided by 16; the effect path selects fixed mode instead. Positions could depend on luminance, hue or another image statistic. Records `81660/81688` are byte-identical.
+The original cycle contains Normal plus 26 IDs at `7C504` (27 selectable positions, 25 distinct parameter combinations). The apply routine accepts IDs `01..2C`, including 18 omitted from the cycle. For Normal plus seven effects, both wrap immediates at `39940/39968` are 6 and the table contains seven IDs. Normal is implicit; it is not an eighth table entry.
 
-### 88-byte record and the extra `1F` stage
+Custom RGB swaps, red-derived grayscale, saturation changes and four-level posterization have hardware evidence. IDs `19..1D,20,21` avoid the hard-coded LUT and ID-1F paths and can hold seven independent presets. Do not extend the original ID table into the code-pointer table at `7C520`. Each custom preset needs a distinct ID/pointer because the driver caches selections.
 
-Record `A3D8` is copied from RAM address `0x020075D8` and contains 22 little-endian 32-bit words. Writer `0x4E1D0` consumes only words **0..12** in fixed effect mode:
-
-| Words | Value | Destination / established use |
-| --- | --- | --- |
-| `0,1,2,3` | `255,128,200,128` | Low bytes to `0xB15C` bits `24,8,16,0`, respectively |
-| `4..7` | All `64` | Low bytes to `0xB160` bits `0,8,16,24` |
-| `8..11` | All `64` | Low bytes to `0xB164` bits `0,8,16,24` |
-| `12` | `64` | Low byte to `0xB0FC` bits `11..18` |
-| `13..20` | `10,10,16,16,16,16,16,16` | Eight gains used by baseline adaptive routine `0x58184`; not read by the fixed writer |
-| `21` | `6` | Adaptive bucket divisor; not read by the fixed writer |
-
-Word 2 is **brightness/exposure-related**: setting `0x16` reaches `0x59260` via `0x49A20`, which can adjust this same `0xB15C[23:16]` field in steps of 16. The other fields' image meanings remain unknown. For `1E`, `B15C=FFC88080`, `B160=B164=40404040`, and `B0FC[18:11]=40` (hex).
-
-**Additional stage for table row `1F`:** loader `0x16A38` reads a 512-byte curve from file `0x8DF20` into RAM `0x02009540`. The `1F`-only branch at `0x59560` sends it through `0x4DD54` to device memory `0x84400`. It contains 256 little-endian 16-bit values, observed range `0..1023`, with crushed shadows and a steep rise. Samples at inputs `0,32,64,96,128,255` are `0,0,307,1005,1020,1023`. The fallback table at `0x8DD20` is exactly `4*x`, but normal mode can restore an adaptive baseline instead. A luminance/contrast curve is strongly suggested, not proven.
-
-### Edge stage
-
-Writer `0x4E6AC` packs two 5x5 kernels into `0xB104..B114` and `0xB118..B128`: five 6-bit coefficients per register, in record order. The first kernel at `81630` has `+1` around its perimeter, zero inside and `-17` at its center (`EF` at `8163C`); its sum is **-1**, not zero. The second kernel at `81614` is all zero. Signed 6-bit interpretation gives range `-32..31`; scaling and clipping remain unverified.
-
-The control word is `B100[15:0] = ((t & 63) << 10) | (4 << 7) | 15`, retaining the upper 16 bits. Thus the `0/20/40` parameter is **6 bits**, beside a fixed 3-bit value 4 and 4-bit value 15. A weak-edge threshold fits the observed noise progression; gain/offset meanings are not excluded. Kernel edits affect all six edge IDs; matrix `8177E` is also shared by grayscale and tinted LUT effects.
-
-## Hardware test plan and usable payloads
-
-Apply each batch independently to a copy of the SHA-256-verified original. All addresses below are file offsets; bytes are hex. These are exact test recipes, **not hardware-validated looks**. Keep the original for restoration and use the established update-header procedure separately. Generated test binaries are now listed in [bin/README.md](../bin/README.md); the manual recipes below are separate experiments.
-
-1. **Count and hidden effects.** Film a complete down-arrow cycle from reset; check whether `2C` precedes normal. For a separate hidden-effect batch, change `0x7C517: 26 -> 03` and `0x7C515: 24 -> 0F`. These replace the two duplicate configurations without extending the table. `03` boosts two LUT channels; `0F` is the existing two-level effect. Check bright highlights for the uninitialized LUT endpoint.
-2. **Isolate the 17-byte stage.** Use the four records below together. Their IDs restore the same other stages. Replace exactly 17 bytes and retain the padding. Capture a grayscale ramp and saturated color patches under fixed lighting at each ID.
-
-| ID | File offset | Exact replacement bytes |
-| --- | --- | --- |
-| `25` | `0x8164C` | `00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00` |
-| `21` | `0x81674` | `08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08` |
-| `20` | `0x81688` | `10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10` |
-| `24` | `0x81660` | `1F 1F 1F 1F 1F 1F 1F 1F 1F 1F 1F 1F 1F 1F 1F 1F 1F` |
-
-3. **Locate the 17 positions.** In a fresh batch, make those four records all zero, then set only `p[0]=16` for `21`, `p[8]=16` for `20`, and `p[16]=16` for `24`; leave `25` zero as the control. Changes confined to brightness bands support a luminance axis; particular color patches support a hue axis. Then sweep indices `1..7` and `9..15`, one at a time. Compare live view, saved JPEG and video; allow exposure to settle.
-4. **Four-level posterization: an actual custom LUT.** Replace the 256 bytes at `0x8E520..0x8E61F` with 64 bytes `00`, then 64 bytes `55`, then 64 bytes `AA`, then 64 bytes `FF`. This is exactly `85 * floor(x/64)`. Select existing ID `06`, whose three channels use `L1`; inversion becomes four-level channel quantization. This also changes hidden effects referencing `L1`, so test separately. Restore the original `FF FE ... 01 00` LUT afterwards.
-5. **Other fields, one per batch.** For matrix `1A`, change `0x81756: 4D 00 -> 80 00`, then `00 01` in a fresh batch, leaving offsets fixed; separately test its three offset words at `0x81760/62/64` as zero. For `1E`, vary one low byte at `A3D8 + 4*i`, `i=0..12`; begin with word 2 (`0xA3E0: C8 -> 80`) to test brightness. Finally compare the edge triplets on flat gray, fine lines and a dark scene; a center-only `0x8163C: EF -> F0` test changes kernel sum from -1 to 0. These measurements are needed before naming the remaining fields or offering blur/emboss presets.
-
-## Eight-position cycles and additional effects
-
-For **Normal + seven effects**, patch both instructions and the first seven table entries:
-
-| Offset | Original | Eight-position cycle |
-| --- | --- | --- |
-| `0x39940` | `19 00 43 BD` (`index > 25`) | `06 00 43 BD` (`index > 6`) |
-| `0x39968` | `19 00 60 9C` (reverse wrap to 25) | `06 00 60 9C` (reverse wrap to 6) |
-| `0x7C504` | 26 effect IDs | Seven desired IDs; Normal is implicit, not another table entry |
-
-For `N` selected effect IDs, each immediate is `N-1`, giving `N+1` positions including Normal. The helper supports `1..26` effect IDs and clears unused slots in the existing table. Both wrap directions must change; changing just the forward bound leaves Up able to select removed entries.
-
-The processing routine already accepts IDs `01..2C` (44 IDs), including the 18 hidden ones. Exposing them reuses existing processing paths. Adding more than 26 table entries needs another change: `0x7C51E/51F` are only two padding bytes, then a code-pointer table starts at **`0x7C520`**. Do not overwrite it. A larger cycle needs a separately allocated/relocated ID table, its pointer at `0x399A0/399A4`, and both wrap limits updated. New IDs above `2C` additionally need the apply-range guard and four parameter tables extended. This is not necessary for eight custom filters.
-
-The LUT selection switch is hard-coded for IDs `02..18`; `1F` has its separate tone-curve path. The current custom curve/matrix probes use IDs `19,1A,1B,1C,1D,20,21` so those special cases cannot confound them. Each probe has a distinct record pointer: the driver caches active pointers and skips unchanged IDs, so repeatedly selecting the same ID/pointer is not a way to supply different simultaneous presets.
-
-## Generated hardware tests
-
-[bin/README.md](../bin/README.md) is the source for the actual **position order, timestamps and flash order**. Three independent builds use the original backup and have eight positions each. The earlier manual recipes are not their position lists.
-
-| Folder | Focus | Experimental data |
-| --- | --- | --- |
-| `filters-01-curve` | Four flat strengths, then broad index bands | 17-byte records at `8164C/81660/81674/81688/8169C/816B0/816C4`: all 0, all 31, all 8, all 16, indices 0..5 at 31, indices 6..11 at 31, indices 12..16 at 31. Other entries in band tests are zero. Matrix/88-byte/edge stages restore baseline. |
-| `filters-02-matrix` | Component isolation, swap and offsets | Seven records at `816D6 + 24*i`: identity; component 0 only; component 1 only; component 2 only; swap 0/2; repeat `[256,0,0]` in all three rows; identity with all offsets 32. Other stages restore baseline. |
-| `filters-03-lut-color` | Four-level posterization; large digital-EV and contrast/gain probes | `L1` becomes `85*floor(x/64)`. Original `1E` is the 88-byte control. Four clones change only word 2 to 0/255 or word 0 to 0/128. Original grayscale is retained as the last position. |
-
-Build 03 stores the four 88-byte clones at `0x81614/8166C/816C4/8171C`, ending at `0x81774` exclusive. This reuses the original edge kernels and inactive parameter templates; **none of its selected effects uses those overwritten templates**. Matrix `8177E` for grayscale remains intact. No data is placed in the unexplained FF tail. All stage pointers are reset or redirected for the selected custom IDs.
-
-The first two sensor profiles' original 17-value baseline is `8,10,12,14,16,18,19,20,21,22,23,24,24,24,22,22,20` (file `0x9231C/0x92A5C`). Consequently a flat 16 is a fixed control, not the original Normal curve. The structured, unequal endpoints make a simple cyclic hue interpretation less convincing, but the axis remains unknown. Broad bands should make any affected brightness/color regions easier to see than single-position probes.
-
-For build 01, compare the all-0 and all-31 positions first, then compare each band with all-0. Report which colors or brightness regions change, including when nothing changes. For build 02, use red/green/blue objects plus white/gray to establish component order and matrix convention. For build 03, compare each word change directly with the original `1E` control; word 2 is tied to the named **EV** setting, while word 0's contrast/gain interpretation is still a hypothesis. Black/white clipping or an apparently flat image is useful evidence, not automatically a failed build.
-
-Reproduction and arbitrary patch recipes: [analysis/MODDING.md](analysis/MODDING.md). The helper updates the entire timestamp word and removes exactly one final FF byte; it does not replace the original sounds/photos.
+[Analysis and test plan](FILTERS_Plan.md) contains observations, confidence limits and remaining work. [Binary catalog](../bin/README.md) lists exact filter order and Unix timestamps; [modding map](analysis/MODDING.md) covers export and patch recipes.

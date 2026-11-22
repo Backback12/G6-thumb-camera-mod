@@ -5,7 +5,7 @@ Offsets are file offsets in the original `tests/original/backup1.bin`. Flash poi
 | Area | Structure / entry point | Possible mods | Detail |
 | --- | --- | --- | --- |
 | Filter selection | Cycle `0x398E4`, IDs `0x7C504`, wrap instructions `0x39940/39968` | Reorder, shorten, expose hidden effects | [FILTERS.md](../FILTERS.md) |
-| Filter processing | Apply `0x59478`; tables `0x813D8/81404/814B4/81564` | Mix matrices, LUTs, curves and kernels | [Parameters and tests](../FILTERS.md#parameter-decoding) |
+| Filter processing | Apply `0x59478`; tables `0x813D8/81404/814B4/81564` | Mix matrices, LUTs, curves and kernels | [Byte/effect map](../FILTERS.md#parameter-map), [analysis/tests](../FILTERS_Plan.md#parameter-decoding) |
 | Buttons | Global table `0x7D72C`; photo/video tables `0xA1F4/A29C` | LCD tap, rotation, alternate hold actions | [Button findings](../README.md#buttons-and-event-dispatch) |
 | Mode selection | Mode manager `0x3FB34`, cycler `0x3FC80`, jump table `0x7D6E4` | Startup video/audio; include the audio player in mode cycling | Below |
 | Settings | 20-byte definitions `0x9420..9574`; option arrays `0x9598..97DF` | Reorder/hide settings, edit available options | Below |
@@ -55,28 +55,30 @@ Option entries are eight bytes: metadata word, then value/text resource ID. In t
 
 The self-timer consumes setting `0x21` at `0x47048`; countdown rendering `0x4655C` rejects values above **10** at `0x46568`. Thus the existing 30S label/value does not prove full 30-second UI support. Sequence values `9D..9F` are outside the numeric resolver range and are compared explicitly in `0x46F98`; burst count changes require the capture branches too.
 
-EV labels +2..-2 map to internal values **5,4,3,2,1** at `0x7E5E4..5F4`. `0x49A20` passes range 5 and step 16 to `0x59260`. On its digital path, it adds **+32,+16,0,-16,-32** to the saved baseline of the 88-byte record's word 2, clamps to `0..255`, and writes `B15C[23:16]`. Another sensor path exists, so this is a conditional digital EV adjustment. Word 2 is now tied to the named EV setting; word 0's contrast/gain interpretation still needs the test images.
+EV labels +2..-2 map to internal values **5,4,3,2,1** at `0x7E5E4..5F4`. `0x49A20` passes range 5 and step 16 to `0x59260`. On its digital path, it adds **+32,+16,0,-16,-32** to the saved baseline of the 88-byte record's word 2, clamps to `0..255`, and writes `B15C[23:16]`. Another sensor path exists, so this is a conditional digital EV adjustment. Round-1 hardware confirms brightness changes at word 2. Word 0's contrast/gain interpretation has supporting observations; its formula remains unknown.
 
 ## Sensor profiles explain baseline differences
 
 The sensor directory starts at `0x8CEEC`, using 68-byte descriptors relative to data base `0x8CEAC`. The first two configuration blocks are `0x91C20` (`H63P_DVP_720p`) and `0x92360` (`H63S_DVP_L`). Each is `0x740` bytes. Do not apply one sensor's defaults globally without checking which sensor is active.
 
 - Their baseline 88-byte records at `0x9224C/0x9298C` start with `136,128,128,128` and `160,136,136,128`, respectively; both differ from effect `1E`'s `255,128,200,128`.
-- Their 17-value curves at `0x9231C/0x92A5C` are identical: `8,10,12,14,16,18,19,20,21,22,23,24,24,24,22,22,20`. This structured baseline supports testing broad index bands, but does not establish the curve's axis.
+- Their 17-value curves at `0x9231C/0x92A5C` are identical: `8,10,12,14,16,18,19,20,21,22,23,24,24,24,22,22,20`. Hardware broad-band tests support brightness-dependent saturation; exact indexing is unresolved.
 
 ## Build and repeat experiments
 
 The patch helper uses Node's standard library. It preserves offsets, checks original bytes, writes a **full 32-bit Unix timestamp at `0x14`**, then removes **exactly one final `FF` byte**. It accepts either the original 1,048,576-byte image or an already trimmed image; the latter is normalized internally so it is not shortened a second time. It does not perform JPG/WAV replacements.
 
 ```powershell
-node tests/tools/patch_g6.js --tests
-# Rebuild after testing build 03, so earlier tests get newer timestamps:
-node tests/tools/patch_g6.js --tests --force
+node tests/tools/patch_g6.js --tests --round 2
+# Repeat 04/05 with timestamps newer than the existing builds:
+node tests/tools/patch_g6.js --tests --round 2 --force
+# Rebuild the original 01..03 recipes instead:
+node tests/tools/patch_g6.js --tests --round 1 --force
 # If the camera has a higher timestamp than the local files:
-node tests/tools/patch_g6.js --tests --force --min-timestamp LAST_INSTALLED_UNIX
+node tests/tools/patch_g6.js --tests --round 2 --force --min-timestamp LAST_INSTALLED_UNIX
 ```
 
-The [binary catalog](../../bin/README.md) records every output timestamp and filter position. Reusing an old file for an earlier test will not satisfy the owner's newer-timestamp requirement. Static analysis of the visible update worker established a difference check; stricter behavior elsewhere remains possible, so these builds follow the hardware constraint.
+The [binary catalog](../../bin/README.md) records both rounds' timestamps and zero-based positions (0 = startup Normal). Rebuilding one round preserves the other, and all known filter builds contribute to the timestamp floor. Reusing an old file for an earlier test will not satisfy the owner's newer-timestamp requirement. Static analysis of the visible update worker established a difference check; stricter behavior elsewhere remains possible, so these builds follow the hardware constraint. Raw feedback and remaining tests are in [FILTERS_Plan.md](../FILTERS_Plan.md).
 
 For a personal eight-position cycle of existing IDs:
 
