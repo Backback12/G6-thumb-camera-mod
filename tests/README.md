@@ -4,6 +4,8 @@ All analysis uses `original/backup1.bin`, 1,048,576 bytes with SHA-256 `278551ea
 
 ## Reproduce
 
+- `node tests/tools/patch_g6.js --tests` creates the three eight-position filter builds and `bin/README.md`. See [analysis/MODDING.md](analysis/MODDING.md) for timestamp handling, repeat tests and arbitrary patch recipes.
+
 - `python3 tests/tools/survey.py` produces the header, string, entropy, pointer, media and filter tables in `analysis/` (requires Pillow).
 - `powershell -NoProfile -ExecutionPolicy Bypass -File tests/tools/extract_ui.ps1` produces `analysis/icons.png`, `icons.tsv` and `ui_text.tsv` from the original (Windows/System.Drawing; no firmware writes).
 - `python3 tests/tools/disassemble.py` produces the compressed candidate assembly and `key_routines.txt` (requires `or1k-elf-objdump`). Data in the broad assembly listing also decodes as instructions.
@@ -111,3 +113,11 @@ Photo light handler `0x46C20` explicitly selects `26` for off, `27` for on and `
 These labels are **glyph-index sequences**, not searchable ASCII strings. Resource 10 at `0xCA653` supplies 842 shared 1-bit glyphs; its records contain `u16 width, u16 height, u32 relative_pixel_offset`, starting after an 8-byte header. Rows use `ceil(width/8)` bytes, most-significant bit first. English decoding was checked by rendering original glyphs for English, Off, On, Resolution, White Balance and EV. Separate built-in ASCII fonts have pointer tables at `0x6BC2C` (6x16), `0x6C4FC` (9x16) and `0x6D3AC` (16x32), traced through `0x2F57C`. No standalone ASCII-art icon set was found; symbols such as HD, Hz and TF are already drawn into bitmap sprites.
 
 For an in-place icon replacement, preserve its dimensions and byte count and use the existing palette. Changing a shared sprite changes every widget using it; changing a particular widget's resource ID can target only that occurrence. No firmware patches were applied.
+
+## Further mod structures and test exports
+
+[analysis/MODDING.md](analysis/MODDING.md) maps the main modification points. New traces establish a mode cycle `Video(2) -> Audio(3) -> Gallery(6) -> Photo(4)` with an omitted Play Audio app (`5`), a normal-startup mode request at `0x3A4B4`, and data-driven settings/options. Numeric resource lookup `0x49854` supplies timer/idle values, while burst modes have separate capture branches. The self-timer display explicitly handles only 0..10, despite an existing 30S label/value.
+
+The EV setting resolves to a digital adjustment of the 88-byte record's word 2 on one sensor path; baseline sensor records also confirm that Normal varies by sensor profile. These findings and the exact two-instruction eight-position wrap changes are added to [FILTERS.md](FILTERS.md).
+
+Three binaries, their Unix timestamps, filter order and feedback instructions are in [bin/README.md](../bin/README.md). They use the original backup, full-word timestamps and a single final-FF removal. Validation covers patch ranges, pointers, export length, and execution of the patched filter-cycle instructions in both directions; camera results are pending. Other proposed mode/settings/button changes are documented only.
