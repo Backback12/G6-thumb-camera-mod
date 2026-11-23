@@ -1,6 +1,6 @@
 # Firmware test builds
 
-Next round: **04 -> 05**. Each timestamp must be newer than the installed firmware (last reported: build 03, Unix **1795244473**). Rebuild before repeating an older test.
+Next test: **07**, LUT/primary-color variations and bit masking (Normal + 20 probes). Each timestamp must be newer than the installed firmware; previously supplied build 06 is Unix **1795378051**. Rebuild before repeating an older test.
 
 Source: original backup, SHA-256 `278551ea79d1485115e52d2e4e2ad49ce8aa616bedd6babd15d194a41e286184`. New files are **1,048,575 bytes**: full little-endian Unix timestamp at `0x14..0x17`, then exactly one final `FF` removed. Asset bytes are original.
 
@@ -14,14 +14,16 @@ Source: original backup, SHA-256 `278551ea79d1485115e52d2e4e2ad49ce8aa616bedd6ba
 | [filters-03-lut-color](filters-03-lut-color/hx330x_sdk.bin) | 1795244473 | 2026-11-21T07:01:13.000Z | Posterization and 88-byte controls; Normal + 7 test filters. |
 | [filters-04-matrix-fields](filters-04-matrix-fields/hx330x_sdk.bin) | 1795369668 | 2026-11-22T17:47:48.000Z | Matrix sign and offset fields; Normal + 7 test filters. |
 | [filters-05-color-fields](filters-05-color-fields/hx330x_sdk.bin) | 1795369669 | 2026-11-22T17:47:49.000Z | Contrast and adjacent color fields; Normal + 7 test filters. |
+| [filters-06-calibration](filters-06-calibration/hx330x_sdk.bin) | 1795378051 | 2026-11-22T20:07:31.000Z | Combined offset and color calibration; Normal + 14 test filters. |
+| [filters-07-poster-bits](filters-07-poster-bits/hx330x_sdk.bin) | 1795388951 | 2026-11-22T23:09:11.000Z | LUT/primary posterization and bit masking; Normal + 20 test filters. |
 
-Rebuild this round: `node tests/tools/patch_g6.js --tests --round 2 --force`. Use `--round 1` for 01..03. If needed, add `--min-timestamp NUMBER`. Timestamps exceed the minimum and all existing known filter builds; each output increases by one second. Earlier binaries are preserved unless their round is explicitly rebuilt.
+Rebuild 07: `node tests/tools/patch_g6.js --tests --round 4 --force`. Earlier rounds: 1 = 01..03, 2 = 04/05, 3 = 06. If needed, add `--min-timestamp NUMBER`. Timestamps exceed all existing known builds and the minimum. Rebuilding one round preserves the others.
 
-Recipes 01..03 have owner feedback agreeing between live view and saved photos; 04..05 await hardware testing. See [observations and confidence](../tests/FILTERS_Plan.md#hardware-feedback-round-1). Button behavior is original apart from cycle length.
+01..06 have owner feedback; original 04/7 was unobserved but its all-127 offsets were repeated at 06/7. 07 awaits hardware testing. See [observations/bookmarks](../tests/FILTERS_Plan.md#hardware-feedback-build-06). Button behavior is original apart from cycle length.
 
-**Position 0 = startup Normal**, then seven short Down presses select 1..7; the eighth returns to 0. Up reverses. The previous catalog used 1..8 labels; these tables now use 0..7 to match the hardware log. The owner confirmed the extra 8 in the curve log was a numbering error.
+**Position 0 = startup Normal**; short Down advances and Up reverses. 01..05 have 0..7; 06 has 0..14; 07 has 0..20 (the twenty-first Down returns to Normal).
 
-Use a fixed scene with gray/white/black and red/green/blue objects. Rough visible differences are sufficient; no narrow band measurements are requested. For 04/05, compare each probe with position 1. Keep EV/WB fixed, allow exposure to settle, and report `folder / position / visible change` (including unchanged, black or clipped).
+Keep scene, lighting and EV/WB fixed. In 07, compare LUT-only probes with 1, color-only probes with 10, combined posterization at 3 with 2 and 11, and saturation 18/19 with each other. Position 20 should be grayscale. Report `folder / position / change`; small or absent changes at 127/129 do not by themselves disprove bit fields.
 
 ## filters-01-curve
 
@@ -108,6 +110,64 @@ Fixed word-2 brightness of 128; isolate words 0, 1 and 3 with large changes.
 
 SHA-256: `98f34d7b698a7f5807c5a7b9de937b5dd54c6ce0987a22897efd5df7e9743d8d`.
 
+## filters-06-calibration
+
+14 probes plus Normal: compare matrix offsets with position 1, color words with position 8.
+
+| Position | Effect ID | Test | What to compare |
+| ---: | --- | --- | --- |
+| 0 | `00` | Normal | Original mode-dependent baseline. |
+| 1 | `19` | Identity control | Compare black/blue shadows with position 1; only listed offsets change. |
+| 2 | `1A` | Offsets 64/0/0 | Compare black/blue shadows with position 1; only listed offsets change. |
+| 3 | `1B` | Offsets 0/64/0 | Compare black/blue shadows with position 1; only listed offsets change. |
+| 4 | `1C` | Offsets 0/0/64 | Compare black/blue shadows with position 1; only listed offsets change. |
+| 5 | `1D` | Offsets 64/64/64 | Exact parameter reference for bookmarked 04/6 blue shadows. |
+| 6 | `1E` | Offsets 63/63/63 | Compare black/blue shadows with position 1; only listed offsets change. |
+| 7 | `20` | Offsets 127/127/127 | Retest the unreported 04/7. |
+| 8 | `21` | Fixed color control | Words 0..3 all 128; compare color probes with this position 8. |
+| 9 | `22` | Word 0 = 64 | Midrange contrast probe; word 2 stays 128. |
+| 10 | `23` | Word 0 = 192 | Midrange contrast probe; word 2 stays 128. |
+| 11 | `24` | Word 1 = 64 | Does this change whitepoint/brightness, primary bands, or both? |
+| 12 | `25` | Word 1 = 192 | Does this change whitepoint/brightness, primary bands, or both? |
+| 13 | `26` | Word 3 = 64 | Report the mapping of red/green/blue and any gray tint; intermediate remap value. |
+| 14 | `27` | Word 3 = 192 | Report the mapping of red/green/blue and any gray tint; intermediate remap value. |
+
+SHA-256: `1e71b411c1de140342d87d30a09eebce5929b413838cf59da5350e77057344a1`.
+
+## filters-07-poster-bits
+
+20 probes plus Normal. Separate LUT quantization from word-1 color effects, combine them, and check saturation high-bit masking.
+
+| Position | Effect ID | Test | What to compare |
+| ---: | --- | --- | --- |
+| 0 | `00` | Normal | Original mode-dependent baseline. |
+| 1 | `19` | Fixed control; no LUT | Words 0..3 all 128; same control as position 10. Reference for LUT probes. |
+| 2 | `06` | RGB four levels | Same table values as 03/1, with fixed color control; compare with 1. |
+| 3 | `07` | RGB four levels + word 1 = 64 | Only word 1 differs from position 2; only the LUT differs from position 11. |
+| 4 | `08` | R/G four levels; B identity | Isolate quantization of red/green; blue remains continuous. |
+| 5 | `0C` | B four levels; R/G identity | Isolate blue quantization. |
+| 6 | `03` | R/G eight levels; B identity | Compare with position 4 for four versus eight levels on the same channels. |
+| 7 | `09` | R/G four levels; B two levels | Blue becomes 0/255 at input 128. |
+| 8 | `0A` | R/G four levels; B eight levels | Compare with positions 2 and 7 for blue quantization strength. |
+| 9 | `0B` | B eight levels; R/G identity | Compare with position 5 for four versus eight levels on blue. |
+| 10 | `1A` | Fixed color control | Words 0..3 all 128; reference for positions 11..17. |
+| 11 | `1B` | Word 1 = 64 (bookmark) | Compare with position 10 and the word-1-only bookmark at 11; channel LUT stage restores baseline. |
+| 12 | `1C` | Word 1 = 127 | Compare with 128 at position 10: a large discontinuity may indicate a sign/mode boundary; small changes are inconclusive. |
+| 13 | `1D` | Word 1 = 129 | Compare with 128 at position 10: a large discontinuity may indicate a sign/mode boundary; small changes are inconclusive. |
+| 14 | `1E` | Word 1 = 192 | Compare with position 10 and the word-1-only bookmark at 11; channel LUT stage restores baseline. |
+| 15 | `20` | Word 1 = 64; brightness 96 | Compare with position 10 and the word-1-only bookmark at 11; channel LUT stage restores baseline. |
+| 16 | `21` | Word 1 = 64; brightness 160 | Compare with position 10 and the word-1-only bookmark at 11; channel LUT stage restores baseline. |
+| 17 | `22` | Word 1 = 64; contrast 192 | Compare with position 10 and the word-1-only bookmark at 11; channel LUT stage restores baseline. |
+| 18 | `23` | Raw saturation 16 -> field 16 | All 17 low-five-bit fields are 16; compare with raw 48 at position 19. |
+| 19 | `24` | Raw saturation 48 -> field 16 | Should match raw 16 at position 18: bit 5 is discarded by the writer. |
+| 20 | `25` | Raw saturation 32 -> field 0 | Should produce grayscale: all low five bits are zero. |
+
+SHA-256: `cb7ce05a85f7bbda2a8821fc16f5a5a9ca890eaecc9531cb66b0755edf0846e2`.
+
 Build 03 repurposes inactive templates at `0x81614..0x81773`. Build 05 uses the same area for four 88-byte records and `0x8DF20..0x8E027` for three more, replacing part of the unused ID-1F-only tone table. Neither build selects edge/1F effects; grayscale matrix `0x8177E`, baseline tone table `0x8DD20`, and media remain intact. No flash-tail allocation or convolution tests are included.
+
+Build 06 uses seven matrices at `0x81614..0x816BB`, two color records at `0x816BC..0x8176B`, and five at `0x8DF20..0x8E0D7`. These replace inactive edge/parameter and ID-1F tone data. All selected edge bytes are zero; ID 1F is absent. Baseline tone table, channel LUTs, grayscale matrix and media remain intact. The build is independent of earlier patches.
+
+Build 07 uses four color records at `0x81614..0x81773`, five at `0x8DF20..0x8E0D7`, and three 17-byte curves at `0x8E0D8/8E0EC/8E100`. LUTs L0/L1/L3/L4 become 8/4/2/8-level tables; L2 identity and adaptive baseline tables are preserved. LUT probes and positions 1/10 share the same fixed color-control pointer; position 3 changes only word 1 versus 2. Selected LUT IDs have their grayscale matrix cleared. No 1F/edge effects, media changes or flash-tail allocation.
 
 Technical details: [filter findings](../tests/FILTERS.md), [analysis and test plan](../tests/FILTERS_Plan.md), [patch recipes](../tests/analysis/MODDING.md).

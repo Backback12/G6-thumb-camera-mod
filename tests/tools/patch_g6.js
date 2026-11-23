@@ -66,8 +66,8 @@ function presets(source, round = 1) {
   const normal = { id: 0, label: 'Normal', detail: 'Original mode-dependent baseline.' };
   const make = (folder, title, summary) => ({ folder, title, summary, filters: [normal], patches: [] });
   const add = (build, offset, data, note) => build.patches.push({ offset, data: Buffer.from(data), expect: source.subarray(offset, offset + data.length), note });
-  function effect(build, effectId, kind, offset) {
-    check(effectId >= 0x19 && effectId !== 0x1F, 'Custom test IDs must avoid hard-coded LUT/1F paths.');
+  function effect(build, effectId, kind, offset, allowLut = false) {
+    check((effectId >= 0x19 || allowLut) && effectId !== 0x1F, 'Custom test IDs must avoid hard-coded LUT/1F paths.');
     for (const [type, table] of [['matrix', 0x81404], ['curve', 0x814B4], ['color', 0x81564]]) {
       add(build, table + (effectId - 1) * 4, u32(type === kind ? 0x06000000 + offset : 0), `${hex(effectId)} ${type} pointer`);
     }
@@ -76,6 +76,78 @@ function presets(source, round = 1) {
   function finish(build) {
     build.patches.unshift(...cycle(source, build.filters.slice(1).map(f => f.id)));
     return build;
+  }
+  if (round === 4) {
+    const build=make('filters-07-poster-bits','LUT/primary posterization and bit masking',
+      '20 probes plus Normal. Separate LUT quantization from word-1 color effects, combine them, and check saturation high-bit masking.');
+    const quant=levels=>Buffer.from(Array.from({length:256},(_,i)=>Math.round(Math.floor(i/(256/levels))*255/(levels-1))));
+    for(const [offset,levels] of [[0x8E120,8],[0x8E220,2],[0x8E320,8],[0x8E520,4]])add(build,offset,quant(levels),`${levels}-level channel LUT`);
+    const lutControls=[0x19,0x06,0x08,0x0C,0x03,0x09,0x0A,0x0B];
+    build.filters.push({id:0x19,label:'Fixed control; no LUT',detail:'Words 0..3 all 128; same control as position 10. Reference for LUT probes.'});
+    const colors=[];
+    function color(effectId,word,value,brightness=128,contrast=128,allowLut=false){
+      const i=colors.length,offset=i<4?0x81614+i*88:0x8DF20+(i-4)*88;
+      const data=Buffer.from(source.subarray(0xA3D8,0xA430));
+      for(let j=0;j<4;j++)data.writeUInt32LE(128,j*4);
+      data.writeUInt32LE(brightness,8);data.writeUInt32LE(contrast,0);
+      if(word!==null)data.writeUInt32LE(value,word*4);
+      effect(build,effectId,'color',offset,allowLut);add(build,offset,data,`Color probe ${i}`);colors.push(offset);
+    }
+    for(const [effectId,label,detail] of [
+      [0x06,'RGB four levels','Same table values as 03/1, with fixed color control; compare with 1.'],
+      [0x07,'RGB four levels + word 1 = 64','Only word 1 differs from position 2; only the LUT differs from position 11.'],
+      [0x08,'R/G four levels; B identity','Isolate quantization of red/green; blue remains continuous.'],
+      [0x0C,'B four levels; R/G identity','Isolate blue quantization.'],
+      [0x03,'R/G eight levels; B identity','Compare with position 4 for four versus eight levels on the same channels.'],
+      [0x09,'R/G four levels; B two levels','Blue becomes 0/255 at input 128.'],
+      [0x0A,'R/G four levels; B eight levels','Compare with positions 2 and 7 for blue quantization strength.'],
+      [0x0B,'B eight levels; R/G identity','Compare with position 5 for four versus eight levels on blue.'],
+    ]){
+      if(effectId===7)color(effectId,1,64,128,128,true);
+      build.filters.push({id:effectId,label,detail});
+    }
+    for(const [effectId,word,value,brightness,contrast,label] of [
+      [0x1A,null,128,128,128,'Fixed color control'],[0x1B,1,64,128,128,'Word 1 = 64 (bookmark)'],
+      [0x1C,1,127,128,128,'Word 1 = 127'],[0x1D,1,129,128,128,'Word 1 = 129'],
+      [0x1E,1,192,128,128,'Word 1 = 192'],[0x20,1,64,96,128,'Word 1 = 64; brightness 96'],
+      [0x21,1,64,160,128,'Word 1 = 64; brightness 160'],[0x22,1,64,128,192,'Word 1 = 64; contrast 192'],
+    ]){
+      color(effectId,word,value,brightness,contrast);
+      if(word===null)for(const id of lutControls)effect(build,id,'color',colors[colors.length-1],id<0x19);
+      build.filters.push({id:effectId,label,detail:word===null?'Words 0..3 all 128; reference for positions 11..17.':value===127||value===129?'Compare with 128 at position 10: a large discontinuity may indicate a sign/mode boundary; small changes are inconclusive.':'Compare with position 10 and the word-1-only bookmark at 11; channel LUT stage restores baseline.'});
+    }
+    [16,48,32].forEach((value,i)=>{
+      const effectId=0x23+i,offset=0x8E0D8+i*20;
+      effect(build,effectId,'curve',offset);add(build,offset,Buffer.alloc(17,value),`Raw saturation bytes ${value}`);
+      build.filters.push({id:effectId,label:`Raw saturation ${value} -> field ${value&31}`,
+        detail:value===48?'Should match raw 16 at position 18: bit 5 is discarded by the writer.':value===32?'Should produce grayscale: all low five bits are zero.':'All 17 low-five-bit fields are 16; compare with raw 48 at position 19.'});
+    });
+    check(colors.length===9 && 0x8E0D8+2*20+17<=0x8E120,'Poster/bit probes exceed inactive storage.');
+    return [finish(build)];
+  }
+  if (round === 3) {
+    const build=make('filters-06-calibration', 'Combined offset and color calibration',
+      '14 probes plus Normal: compare matrix offsets with position 1, color words with position 8.');
+    const ids=[0x19,0x1A,0x1B,0x1C,0x1D,0x1E,0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27];
+    const offsets=[[0,0,0],[64,0,0],[0,64,0],[0,0,64],[64,64,64],[63,63,63],[127,127,127]];
+    offsets.forEach((values,i)=>{
+      const offset=0x81614+i*24,data=Buffer.alloc(24);
+      [256,0,0,0,256,0,0,0,256,...values].forEach((v,j)=>data.writeUInt16LE(v,j*2));
+      effect(build,ids[i],'matrix',offset);add(build,offset,data,`Offsets ${values}`);
+      build.filters.push({id:ids[i],label:i===0?'Identity control':`Offsets ${values.join('/')}`,
+        detail:i===4?'Exact parameter reference for bookmarked 04/6 blue shadows.':i===6?'Retest the unreported 04/7.':'Compare black/blue shadows with position 1; only listed offsets change.'});
+    });
+    [[null,128],[0,64],[0,192],[1,64],[1,192],[3,64],[3,192]].forEach(([word,value],i)=>{
+      const offset=i<2?0x816BC+i*88:0x8DF20+(i-2)*88;
+      const data=Buffer.from(source.subarray(0xA3D8,0xA430));
+      for(let j=0;j<4;j++)data.writeUInt32LE(128,j*4);
+      if(word!==null)data.writeUInt32LE(value,word*4);
+      effect(build,ids[i+7],'color',offset);add(build,offset,data,`Color word ${word} = ${value}`);
+      build.filters.push({id:ids[i+7],label:word===null?'Fixed color control':`Word ${word} = ${value}`,
+        detail:word===null?'Words 0..3 all 128; compare color probes with this position 8.':word===0?'Midrange contrast probe; word 2 stays 128.':word===1?'Does this change whitepoint/brightness, primary bands, or both?':'Report the mapping of red/green/blue and any gray tint; intermediate remap value.'});
+    });
+    check(0x816BC+2*88<=0x8177E && 0x8DF20+5*88<=0x8E120,'Calibration records exceed inactive storage.');
+    return [finish(build)];
   }
   if (round === 2) {
     const matrix = make('filters-04-matrix-fields', 'Matrix sign and offset fields',
@@ -178,14 +250,14 @@ function writeOutput(filename, data, force) {
   fs.writeFileSync(filename, data);
 }
 function catalog(outDir, source) {
-  const results = [...presets(image(source), 1), ...presets(image(source), 2)].flatMap(build => {
+  const results = [1,2,3,4].flatMap(round=>presets(image(source),round)).flatMap(build => {
     const filename = path.join(outDir, build.folder, NAME);
     if (!fs.existsSync(filename)) return [];
     const data = fs.readFileSync(filename);
     return [{ build, data, timestamp: data.readUInt32LE(0x14) }];
   });
   const lines = ['# Firmware test builds', '',
-    'Next round: **04 -> 05**. Each timestamp must be newer than the installed firmware (last reported: build 03, Unix **1795244473**). Rebuild before repeating an older test.', '',
+    'Next test: **07**, LUT/primary-color variations and bit masking (Normal + 20 probes). Each timestamp must be newer than the installed firmware; previously supplied build 06 is Unix **1795378051**. Rebuild before repeating an older test.', '',
     `Source: original backup, SHA-256 \`${sha(source)}\`. New files are **1,048,575 bytes**: full little-endian Unix timestamp at \`0x14..0x17\`, then exactly one final \`FF\` removed. Asset bytes are original.`, '',
     '| Folder | Unix timestamp | UTC | Description |', '| --- | ---: | --- | --- |'];
   for (const folder of ['2A', '2B', '2C']) {
@@ -195,17 +267,19 @@ function catalog(outDir, source) {
       lines.push(`| [${folder}](${folder}/${NAME}) | ${t} | ${new Date(t * 1000).toISOString()} | Existing custom audio/photo test; ${b.length.toLocaleString('en-US')} bytes. |`);
     }
   }
-  for (const r of results) lines.push(`| [${r.build.folder}](${r.build.folder}/${NAME}) | ${r.timestamp} | ${new Date(r.timestamp * 1000).toISOString()} | ${r.build.title}; Normal + 7 test filters. |`);
-  lines.push('', 'Rebuild this round: `node tests/tools/patch_g6.js --tests --round 2 --force`. Use `--round 1` for 01..03. If needed, add `--min-timestamp NUMBER`. Timestamps exceed the minimum and all existing known filter builds; each output increases by one second. Earlier binaries are preserved unless their round is explicitly rebuilt.', '',
-    'Recipes 01..03 have owner feedback agreeing between live view and saved photos; 04..05 await hardware testing. See [observations and confidence](../tests/FILTERS_Plan.md#hardware-feedback-round-1). Button behavior is original apart from cycle length.', '',
-    '**Position 0 = startup Normal**, then seven short Down presses select 1..7; the eighth returns to 0. Up reverses. The previous catalog used 1..8 labels; these tables now use 0..7 to match the hardware log. The owner confirmed the extra 8 in the curve log was a numbering error.', '',
-    'Use a fixed scene with gray/white/black and red/green/blue objects. Rough visible differences are sufficient; no narrow band measurements are requested. For 04/05, compare each probe with position 1. Keep EV/WB fixed, allow exposure to settle, and report `folder / position / visible change` (including unchanged, black or clipped).', '');
+  for (const r of results) lines.push(`| [${r.build.folder}](${r.build.folder}/${NAME}) | ${r.timestamp} | ${new Date(r.timestamp * 1000).toISOString()} | ${r.build.title}; Normal + ${r.build.filters.length-1} test filters. |`);
+  lines.push('', 'Rebuild 07: `node tests/tools/patch_g6.js --tests --round 4 --force`. Earlier rounds: 1 = 01..03, 2 = 04/05, 3 = 06. If needed, add `--min-timestamp NUMBER`. Timestamps exceed all existing known builds and the minimum. Rebuilding one round preserves the others.', '',
+    '01..06 have owner feedback; original 04/7 was unobserved but its all-127 offsets were repeated at 06/7. 07 awaits hardware testing. See [observations/bookmarks](../tests/FILTERS_Plan.md#hardware-feedback-build-06). Button behavior is original apart from cycle length.', '',
+    '**Position 0 = startup Normal**; short Down advances and Up reverses. 01..05 have 0..7; 06 has 0..14; 07 has 0..20 (the twenty-first Down returns to Normal).', '',
+    'Keep scene, lighting and EV/WB fixed. In 07, compare LUT-only probes with 1, color-only probes with 10, combined posterization at 3 with 2 and 11, and saturation 18/19 with each other. Position 20 should be grayscale. Report `folder / position / change`; small or absent changes at 127/129 do not by themselves disprove bit fields.', '');
   for (const r of results) {
     lines.push(`## ${r.build.folder}`, '', r.build.summary, '', '| Position | Effect ID | Test | What to compare |', '| ---: | --- | --- | --- |');
     r.build.filters.forEach((f, i) => lines.push(`| ${i} | \`${f.id.toString(16).toUpperCase().padStart(2, '0')}\` | ${f.label} | ${f.detail} |`));
     lines.push('', `SHA-256: \`${sha(r.data)}\`.`, '');
   }
   lines.push('Build 03 repurposes inactive templates at `0x81614..0x81773`. Build 05 uses the same area for four 88-byte records and `0x8DF20..0x8E027` for three more, replacing part of the unused ID-1F-only tone table. Neither build selects edge/1F effects; grayscale matrix `0x8177E`, baseline tone table `0x8DD20`, and media remain intact. No flash-tail allocation or convolution tests are included.', '',
+    'Build 06 uses seven matrices at `0x81614..0x816BB`, two color records at `0x816BC..0x8176B`, and five at `0x8DF20..0x8E0D7`. These replace inactive edge/parameter and ID-1F tone data. All selected edge bytes are zero; ID 1F is absent. Baseline tone table, channel LUTs, grayscale matrix and media remain intact. The build is independent of earlier patches.', '',
+    'Build 07 uses four color records at `0x81614..0x81773`, five at `0x8DF20..0x8E0D7`, and three 17-byte curves at `0x8E0D8/8E0EC/8E100`. LUTs L0/L1/L3/L4 become 8/4/2/8-level tables; L2 identity and adaptive baseline tables are preserved. LUT probes and positions 1/10 share the same fixed color-control pointer; position 3 changes only word 1 versus 2. Selected LUT IDs have their grayscale matrix cleared. No 1F/edge effects, media changes or flash-tail allocation.', '',
     'Technical details: [filter findings](../tests/FILTERS.md), [analysis and test plan](../tests/FILTERS_Plan.md), [patch recipes](../tests/analysis/MODDING.md).', '');
   return lines.join('\n');
 }
@@ -219,7 +293,7 @@ function main(argv) {
     args[key] = flags.has(key) ? true : argv[++i];
     check(args[key] !== undefined, `Missing value for ${key}`);
   }
-  if (args['--help']) return console.log('node tests/tools/patch_g6.js --tests [--round 1|2] [--force] [--dry-run] [--min-timestamp UNIX]\nnode tests/tools/patch_g6.js --input FILE --recipe JSON --output bin/FOLDER/hx330x_sdk.bin\nOptional: --cycle "01,06,19,1A,1D,27,2A" --timestamp UNIX');
+  if (args['--help']) return console.log('node tests/tools/patch_g6.js --tests [--round 1|2|3|4] [--force] [--dry-run] [--min-timestamp UNIX]\nnode tests/tools/patch_g6.js --input FILE --recipe JSON --output bin/FOLDER/hx330x_sdk.bin\nOptional: --cycle "01,06,19,1A,1D,27,2A" --timestamp UNIX');
   const input = path.resolve(args['--input'] || ORIGINAL), source = fs.readFileSync(input), full = image(source);
   const minimum = Math.max(full.readUInt32LE(0x14), Number(args['--min-timestamp'] || 0));
   check(Number.isInteger(minimum) && minimum >= 0, 'Invalid minimum timestamp.');
@@ -228,7 +302,7 @@ function main(argv) {
     check(sha(source) === SHA256, 'Filter test presets require the exact original backup.');
     const outDir = path.resolve(args['--out-dir'] || path.join(ROOT, 'bin')), builds = presets(full, Number(args['--round'] || 1));
     let latest = minimum;
-    for (const build of [...presets(full, 1), ...presets(full, 2)]) {
+    for (const build of [1,2,3,4].flatMap(round=>presets(full,round))) {
       const file = path.join(outDir, build.folder, NAME);
       if (fs.existsSync(file)) latest = Math.max(latest, fs.readFileSync(file).readUInt32LE(0x14));
       if (builds.some(b => b.folder === build.folder)) check(args['--force'] || !fs.existsSync(file), `${file} exists; use --force.`);

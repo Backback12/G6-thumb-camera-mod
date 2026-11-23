@@ -69,16 +69,18 @@ The sensor directory starts at `0x8CEEC`, using 68-byte descriptors relative to 
 The patch helper uses Node's standard library. It preserves offsets, checks original bytes, writes a **full 32-bit Unix timestamp at `0x14`**, then removes **exactly one final `FF` byte**. It accepts either the original 1,048,576-byte image or an already trimmed image; the latter is normalized internally so it is not shortened a second time. It does not perform JPG/WAV replacements.
 
 ```powershell
-node tests/tools/patch_g6.js --tests --round 2
-# Repeat 04/05 with timestamps newer than the existing builds:
-node tests/tools/patch_g6.js --tests --round 2 --force
+node tests/tools/patch_g6.js --tests --round 4
+# Repeat LUT/color/bit build 07 with a newer timestamp:
+node tests/tools/patch_g6.js --tests --round 4 --force
 # Rebuild the original 01..03 recipes instead:
 node tests/tools/patch_g6.js --tests --round 1 --force
 # If the camera has a higher timestamp than the local files:
-node tests/tools/patch_g6.js --tests --round 2 --force --min-timestamp LAST_INSTALLED_UNIX
+node tests/tools/patch_g6.js --tests --round 4 --force --min-timestamp LAST_INSTALLED_UNIX
 ```
 
-The [binary catalog](../../bin/README.md) records both rounds' timestamps and zero-based positions (0 = startup Normal). Rebuilding one round preserves the other, and all known filter builds contribute to the timestamp floor. Reusing an old file for an earlier test will not satisfy the owner's newer-timestamp requirement. Static analysis of the visible update worker established a difference check; stricter behavior elsewhere remains possible, so these builds follow the hardware constraint. Raw feedback and remaining tests are in [FILTERS_Plan.md](../FILTERS_Plan.md).
+The [binary catalog](../../bin/README.md) records all rounds' timestamps and zero-based positions. Round 1 = 01..03, round 2 = 04/05, round 3 = 06 (14 probes), round 4 = 07 (20 probes). Rebuilding one round preserves the others; all known builds contribute to the timestamp floor. Reusing an older file will not satisfy the owner's newer-timestamp requirement. The visible update worker established a difference check; stricter behavior elsewhere remains possible, so exports follow the hardware constraint. Raw feedback is in [FILTERS_Plan.md](../FILTERS_Plan.md).
+
+The [local editor](../filter-emulator/README.md) shows simultaneous camera/chart/image pairs, reference values and LUT curves. Save JSON includes record hex and derived register fields; Copy config makes an importable delta from editor-neutral-v1. Both remain editor formats, not this helper's `--recipe`: storage offsets and enabled pointers must be allocated separately. Labels/preview assumptions do not establish unknown hardware structures or equations.
 
 For a personal eight-position cycle of existing IDs:
 

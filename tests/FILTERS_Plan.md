@@ -1,6 +1,6 @@
 # Filter analysis and test plan
 
-Backend notes, original ID maps, hardware observations and experiment recipes. The concise parameter reference is [FILTERS.md](FILTERS.md). Addresses are file offsets unless marked RAM/device. Earlier manual plans below are retained as analysis history; current work is under [Hardware feedback, round 1](#hardware-feedback-round-1) and [Next hardware round](#next-hardware-round).
+Backend notes, original ID maps, hardware observations and experiment recipes. The concise reference is [FILTERS.md](FILTERS.md). Addresses are file offsets unless marked RAM/device. Earlier plans are history; current work is under [build-06 feedback](#hardware-feedback-build-06), [bookmarks](#bookmarked-looks), [byte/bit decoding](#bytes-bits-and-editor-labels), and [build 07](#build-07-posterization-variations-and-bit-masking).
 
 **Camera:** 26 visible states, including normal, as observed by the owner. **Firmware:** reset ID `00` plus 26 IDs at `0x7C504`: **27 selectable positions**. Both directions at `0x398E4` include the last ID `2C`; no skip was found. IDs `01/26` select the same stages, and `20/24` have byte-identical 17-byte records: 25 distinct parameter combinations. This does not fully resolve the reported sequence. The mapping below assumes down-arrow follows the table forward; numbering near the end remains tentative. ID `2C` has **no separately observed camera state**.
 
@@ -115,7 +115,7 @@ Writer `0x4D874` reads twelve little-endian 16-bit words. Words `0..8` are maske
 | `816EE` | `[0,256,0] / [0,256,0] / [0,0,256]` | `0,0,0` |
 | `816D6` | `[156,0,0] / [0,256,0] / [0,256,0]` | `0,0,0` |
 
-`-42` interprets stored `0x03D6` as signed. Round-1 hardware tests establish RGB order and row-major mixing: repeating `[256,0,0]` in all rows produces red-derived grayscale, and exchanging the outer rows/columns swaps red and blue. Diagonal 256 behaves as identity. Signed 10-bit encoding is still an inference; rounding, clipping and offset sign/units remain unverified. All offsets 32 produced no obvious change. The writer packs **columns** into `0xB0E4/E8/EC` at bits `0,10,20`; offsets go to `0xB0F0` at the same positions. A zero matrix pointer restores baseline, not identity.
+`-42` interprets stored `0x03D6` as signed two's complement. Hardware establishes RGB order and row-major mixing: repeating `[256,0,0]` in all rows produces red-derived grayscale, and exchanging the outer rows/columns swaps red and blue. Diagonal 256 behaves as identity. Round 2 supports a sign boundary at 512; exact signed encoding, rounding and clipping remain unverified. All offsets 32/63 produced no obvious change; all 64 produced blue-shadow noise, so their sign/units/function are unresolved. The writer packs **columns** into `0xB0E4/E8/EC` at bits `0,10,20`; offsets go to `0xB0F0` at the same positions. A zero matrix pointer restores baseline, not identity.
 
 ### 17-byte curve
 
@@ -136,7 +136,7 @@ Record `A3D8` is copied from RAM address `0x020075D8` and contains 22 little-end
 | `13..20` | `10,10,16,16,16,16,16,16` | Eight gains used by baseline adaptive routine `0x58184`; not read by the fixed writer |
 | `21` | `6` | Adaptive bucket divisor; not read by the fixed writer |
 
-Word 2 is **brightness/exposure-related**: setting `0x16` reaches `0x59260` via `0x49A20`, which can adjust this same `0xB15C[23:16]` field in steps of 16. The other fields' image meanings remain unknown. For `1E`, `B15C=FFC88080`, `B160=B164=40404040`, and `B0FC[18:11]=40` (hex).
+Word 2 is **brightness/exposure-related**: setting `0x16` reaches `0x59260` via `0x49A20`, which can adjust this same `0xB15C[23:16]` field in steps of 16. Round 2 establishes contrast-related behavior at word 0 and color remapping at word 3; word 1 changes primary bands/whitepoint. Their equations and words 4..12 remain unresolved. For `1E`, `B15C=FFC88080`, `B160=B164=40404040`, and `B0FC[18:11]=40` (hex).
 
 **Additional stage for table row `1F`:** loader `0x16A38` reads a 512-byte curve from file `0x8DF20` into RAM `0x02009540`. The `1F`-only branch at `0x59560` sends it through `0x4DD54` to device memory `0x84400`. It contains 256 little-endian 16-bit values, observed range `0..1023`, with crushed shadows and a steep rise. Samples at inputs `0,32,64,96,128,255` are `0,0,307,1005,1020,1023`. The fallback table at `0x8DD20` is exactly `4*x`, but normal mode can restore an adaptive baseline instead. A luminance/contrast curve is strongly suggested, not proven.
 
@@ -267,7 +267,7 @@ filters-03-lut-color
 
 Clarification: "5 is almost the highpass. 6 is the bandpass. 7 is the low pass. There is no 8, that was a mistake on my numbering." These describe brightness bands retaining color, not spatial filtering.
 
-## Next hardware round
+## Hardware round 2 (completed)
 
 Two independent builds from the original backup, with eight positions each; no fine saturation-band or kernel tests. Flash **04 then 05** using the newer timestamps in [bin/README.md](../bin/README.md). Positions 0..7 and exact IDs are listed there. Compare against position 1, using large visible changes, a fixed room scene and unchanged EV/WB; allow exposure to settle. Rough descriptions are sufficient.
 
@@ -284,6 +284,184 @@ For 05, each probe differs from the fixed control in exactly one word; word 2 st
 
 Rebuild: `node tests/tools/patch_g6.js --tests --round 2 --force --min-timestamp LAST_INSTALLED_UNIX`. Round 1 rebuilds 01..03; round 2 rebuilds only 04/05. Existing known filter builds supply the timestamp floor, and the catalog retains both rounds. The full LE32 timestamp and exactly one final-FF removal are unchanged.
 
-Validation: both new recipes passed an independent changed-byte allowlist, stage-pointer and record checks, all ten original media comparisons, and 80 executions of the patched cycle instructions covering reset, both directions and full wraps. The instruction listing was checked against original little-endian words. Export length is 1,048,575 bytes; 01..03 still reconstruct byte-for-byte at their original timestamps. New hardware outcomes are pending.
+Validation: both recipes passed an independent changed-byte allowlist, stage-pointer and record checks, all ten original media comparisons, and 80 executions of the patched cycle instructions covering reset, both directions and full wraps. The instruction listing was checked against original little-endian words. Export length is 1,048,575 bytes; 01..03 still reconstruct byte-for-byte at their original timestamps. Owner feedback is below; 04/7 was not checked/recalled.
 
 If more work is useful after this round, remaining priorities are the responding offsets, words 4..12 (one field at a time with safe storage), and an isolated ID-1F tone-curve test. Exact saturation index boundaries, convolution scaling and quantitative color calibration are deferred. No additional binaries are supplied for those plans.
+
+## Hardware feedback, round 2
+
+Shipped 04/05 were rechecked against the original recipes byte-for-byte. Positions remain 0 = startup Normal. The owner confirmed **04/7 was not checked/recalled**; no observed result is assigned to offsets 127. The log explicitly places the blue-shadow effect at 04/6 (offsets 64), which matches the intended sign-boundary probe. The previous live/saved agreement covered round 1; this report does not separately identify its capture path.
+
+| Build / position | Exact isolated parameters | Finding / confidence |
+| --- | --- | --- |
+| 04 / 1 | RGB identity, offsets 0 | No obvious change; control |
+| 04 / 2 | Red coefficient 511, green/blue 256 | Red tint while other colors remain; supports increased red gain |
+| 04 / 3,4 | Red coefficient 512,1023 | Both suppress red/aqua appearance. High confidence for sign-boundary behavior; two's complement versus other signed encodings, scale and clipping remain unmeasured |
+| 04 / 5 | Identity + all offsets 63 | No obvious change |
+| 04 / 6 | Identity + all offsets 64 | **Bookmark:** slightly raised blackpoint and blue/black noise in slightly blue shadows; full black stays black. Offset bit 6 in at least one field matters; individual field roles and mechanism unknown |
+| 04 / 7 | Identity + all offsets 127 | Unobserved; do not infer it matches 04/3,4 or 6 |
+| 05 / 1 | Words 0..3 = 128,128,128,128 | Slightly lower brightness than Normal; fixed control differs from adaptive sensor baseline |
+| 05 / 2 | Word 0 = 0 | Mushy/grayer midtones, some blue; full black stays black. Rules out claiming a proven simple constant-luma formula |
+| 05 / 3 | Word 0 = 255 | High contrast with brightness held at 128; high confidence for contrast-related behavior, equation still unknown |
+| 05 / 4 | Word 1 = 0 | **Bookmark:** sparse, bright primary bands; other tones and very bright regions black. Not established as ordinary saturation |
+| 05 / 5 | Word 1 = 255 | Very bright / apparent lower whitepoint; meaning and encoding unknown |
+| 05 / 6 | Word 3 = 0 | Color remap: R->G, G->B, B->R/magenta; hue/chroma hypothesis, not proof of a simple channel permutation |
+| 05 / 7 | Word 3 = 255 | Different remap: R->purple, G->brown/pale red, B->G. Hue/chroma hypothesis; exact equation unknown |
+
+### Original owner log, round 2
+
+```text
+filters-04-matrix-fields
+
+0 - Regular
+1 - Nothing? Can't tell
+2 - Red tinted, still has other colours but its tinting everything red
+3 - Aqua tinted, or maybe red is just tuned down (or completely?) a red spectrum is looking pretty green
+4 - Almost looks identical to #3
+5 - Looks pretty normal, can't tell anything weird from the spectrum
+6 - Interesting, blackpoint is a little bit higher but in some instances darker items have a full blue tint (0,0,255). Causes a (black/blue) noise effect in dark areas. Pretty interesting, bookmark this one. Completely black is still black though. It appears to only apply the black/blue noise to areas that are slightly blue and not completely dark
+
+filters-05-color-fields
+
+0 - regular
+1 - slightly lower brightness
+2 - Seems to apply some sort of weird blue between low to medium of colours. Black is still black. Colour kinda lose their saturation in the middle? But overall its not quite desaturation. The best way to describe is kinda is that the greys become mushy and more grayscale
+3 - Very high contrast. Blacks are pretty black, and Whites are pretty white.
+4 - Very very cool effect, only some levels of Red, Green and Blue are showing. Not quite mixing. The rest is black. Very bright also becomes black. Colours dont appear to mix. Very cool, bookmark this one. A little too dark to see too much but still very cool effect.
+5 - Very bright. It kinda looks like the whitepoint has been lowered?
+6 - Ohh another colour swap. Original red appears as green, original green appears as blue, original blue appears as red/magenta?. yellow is light green. aqua is lavender almost. green is a cool mid blue. magenta is red. red is green. blue is magenta.
+7 - Interesting colour swap. Original Red showas as purple, original green shows as some sort of brown? original blue shows as green. original yellow is pink, aqua is green, green is likee a pale red,brown, pink is aqua, red is purple, blue is green.
+```
+
+## Bookmarked looks
+
+All explicit bookmarks, "cool"/"WOW" looks and requested noise references are retained here, including earlier rounds. These are exact input recipes, not claims of a solved visual model. All other stages in each custom probe restore baseline unless listed.
+
+| Build / position | Candidate | Exact active data |
+| --- | --- | --- |
+| 02 / 2 | Strong red (WOW) | Matrix `[256,0,0;0,0,0;0,0,0]`, offsets 0 |
+| 02 / 4 | Blue-only noise/pixelation (keep in mind) | Matrix `[0,0,0;0,0,0;0,0,256]`, offsets 0 |
+| 02 / 5 | Red/blue swap (very cool) | Matrix `[0,0,256;0,256,0;256,0,0]`, offsets 0 |
+| 03 / 1 | Posterization (WOW) | All three LUTs = `85*floor(x/64)` |
+| 03 / 4 | Bright clipped spectrum (WOW) | Original 1E record except word 2 = 255; word 0 remains 255 |
+| 04 / 6 | **Blue-shadow noise (explicit bookmark)** | Identity matrix + offsets `[64,64,64]` |
+| 05 / 4 | **Sparse primary bands (explicit bookmark)** | Original 1E tail, words 0..3 = `[128,0,128,128]` |
+| 05 / 6 | Color remap A | Original 1E tail, words 0..3 = `[128,128,128,0]` |
+| 05 / 7 | Color remap B | Original 1E tail, words 0..3 = `[128,128,128,255]` |
+| 06 / 3 | Purple tint / neat noise | Identity matrix + offsets `[0,64,0]` |
+| 06 / 5 | Blue-shadow noise (confirmed repeat) | Identity matrix + offsets `[64,64,64]`; reproduces 04/6 |
+| 06 / 11 | **Primary-color palette (explicit bookmark)** | Original 1E tail, words 0..3 = `[128,64,128,128]`; LUT stage remains baseline |
+
+The unusual broad color bands 01/5..7 also remain available as editor presets (indices 0..5 / 6..11 / 12..16 at 31, others 0). Noise intensity depends on scene/sensor processing and is not reproduced merely by adding synthetic noise in the editor.
+
+## Combined calibration, round 3
+
+One independent original-backup build, **filters-06-calibration**, with **Normal + 14 probes = positions 0..14**. This avoids another pair of flashes. Every selected ID is distinct, skips hard-coded LUT IDs and special 1F, and has edge stage zero. The fifteenth Down press wraps to Normal; Up reverses. Unix timestamp and exact order are in [bin/README.md](../bin/README.md).
+
+| Positions | Probe | Compare / question |
+| --- | --- | --- |
+| 1 | Identity matrix, offsets 0 | Matrix control |
+| 2,3,4 | Only offset 0,1,2 respectively = 64 | Which individual field creates the blue-shadow effect? No RGB-bias meaning assumed |
+| 5 | All offsets 64 | Exact bookmarked 04/6 parameter reference |
+| 6,7 | All offsets 63,127 | Boundary control and missing 04/7 result |
+| 8 | Color words 0..3 all 128 | Color control; compare 9..14 with this, not the matrix control |
+| 9,10 | Word 0 = 64,192 | Contrast progression with word 2 fixed at 128 |
+| 11,12 | Word 1 = 64,192 | Midrange whitepoint/brightness versus primary-band behavior |
+| 13,14 | Word 3 = 64,192 | Intermediate color maps; note red/green/blue and gray separately |
+
+Keep the chart/scene, lighting and EV/WB fixed and allow exposure to settle. Approximate descriptions remain useful; if convenient, saved images of the same bars at controls and probes would help calibrate equations. Pure black and white behavior helps distinguish hue-only changes from luminance/wrap effects. No extra fine-band/kernel tests are added.
+
+Storage: seven 24-byte matrices at `81614 + 24*i`; two full 88-byte records at `816BC/81714`; five at `8DF20 + 88*i`. Used ranges end at `8176C` and `8E0D8` exclusive. The original grayscale matrix `8177E`, baseline tone table `8DD20`, channel LUTs, media and flash tail remain intact. Inactive edge/parameter templates and part of the unused ID-1F tone table are repurposed; this build is not cumulative. Rebuild with `node tests/tools/patch_g6.js --tests --round 3 --force --min-timestamp LAST_INSTALLED_UNIX`.
+
+Validation: build 06 passed a separate changed-byte allowlist, all 14 selected records/stage pointers, all ten media assets, preserved baseline tables, and 75 executions of the patched cycle instructions (reset, both directions and full 15-position wraps). Its full LE32 timestamp is newer than 05 and only the final FF is removed. Original and 01..05 binaries remain unchanged. Hardware feedback is recorded below.
+
+## Editor assumptions and validation
+
+[filter-emulator/README.md](filter-emulator/README.md) describes the dependency-free editor and its model. Before/after views stay visible while compact controls scroll. Built-in bars/ramps are the agreed source; local images and live camera are also supported. Presets are reconstructed from the patch helper, so raw parameters match the binaries; preview equations remain separate, editable assumptions.
+
+Matrix signed arithmetic/divide-by-256, reverse-luminance saturation interpolation, contrast pivot, brightness bias, tone domain, stage order and generic convolution are approximations. Words 1/3 and offsets default to unmodeled. Optional luma-gain/hue and additive-offset illustrations are hypotheses, not decoded ISP behavior. Words 4..21 and edge controls are editable/exported but not simulated. The sparse-primary and blue-shadow appearances are not claimed as reproduced. JSON exports preserve raw values and LE record hex for later firmware work, without inventing flash offsets.
+
+Nine model tests cover color swap/sign-boundary direction, desaturation, posterization boundaries, disabled/unknown fields, explicit model opt-in, kernel pass-through, LE encoding and invalid JSON data. Browser checks cover image loading, live slider changes, JSON download/import/errors, synthetic live-camera frames, track release, denied permission, and persistent before/after views on desktop and 390px mobile. Physical webcam/sensor matching remains a user hardware check.
+
+## Hardware feedback, build 06
+
+The shipped binary was reconstructed byte-for-byte at Unix `1795378051`. All observations below therefore map to the intended records. Capture path was not separately specified in this log. Earlier 04/7 remains historically unobserved, but the same all-127 offset parameters were now tested at 06/7.
+
+| Positions | Exact change / result | Interpretation |
+| --- | --- | --- |
+| 1 | Matrix identity; no obvious difference | Control |
+| 2,3,4 | Offset 0/1/2 individually 64: aqua with red contrast, purple/R+B with noise, yellow/brown respectively | Supports RGB field order and negative-bias interpretation of 64; exact units/clipping still unknown |
+| 5 | All offsets 64; repeats large-looking blue/black shadow pixels/noise | Confirmed bookmark; no spatial parameter changed. Larger apparent pixels may reflect contrast/noise rather than a pixel-size control |
+| 6,7 | All offsets 63: brighter/higher blackpoint; all 127: normal | Consistent with signed 7-bit +63/-1, but not a calibrated proof of arithmetic |
+| 8 | Fixed color words 0..3 all 128; slightly darker | Color control differs from adaptive Normal |
+| 9,10 | Word 0 = 64/192: gray/mushy low-mid tones, then slightly stronger contrast | Extends contrast-related behavior; simple luma-only equation still not proved |
+| 11,12 | Word 1 = 64/192: strong RGB-primary palette with few secondary colors, then too bright | **Bookmark 11.** LUTs are unchanged, so this is not the deliberately edited LUT's quantization. Equation, bit-field interpretation and pipeline coupling remain unresolved |
+| 13,14 | Word 3 = 64/192: G->B/B->purple/R->orange, then R->magenta/G->yellow/B->aqua | Supports opposite hue/chroma shifts around 128; optional preview rotation direction corrected. Angular scale and hardware equation are still assumptions |
+
+### Original owner log, build 06
+
+```text
+filters-06-calibration
+
+0 - Regular
+1 - Can't tell any difference
+2 - slightly aqua tinted, really makes red items pop out from the contrast
+3 - Red and Blue very strong. Purple tinted. Makes neat noise.
+4 - Brown yellow tint?
+5 - Almost looks exactly like the blue pixelized effect that I saw earlier. Dark blues appear super noisy and pixelized. Note that so far there are no other filters that use noise/pixels this big. Or maybe its just obviously bigger because the contrast between blue and black.
+6 - Just brighter? higher blackpoint?
+7 - Appears regular
+8 - Slightly darker than the last
+9 - Seems to apply that low-mid range blur to the colours. Under a certain brightness it just appears grey and mushy.
+10 - Regular but slightly higher contrast?
+11 - Interesting one. This makes bright colours pop even more regards to RGB. The spectrum also seems to round more to RGB. There's barely any yellows, barely any aquas, and almost no purples. Very interesting filter. Bookmark this.
+12 - Overall just looks brighter. little too bright.
+13 - Colour swap: mainly G->B but Blues turned purple. Reds turned slighty mmore orange.
+14 - Color swap: R->magenta,Green is slightly more yellow,blue is a little more aqua?
+```
+
+## Bytes, bits and editor labels
+
+Rechecked writer `4EB74..4EC88` against original instruction bytes: it performs 17 separate `l.lbz` reads and masks each with `l.andi ...,0x1F`, then shifts/ORs the values into `B168/B16C/B170` (6/6/5 fields). These are **17 stored bytes containing 17 five-bit values**, not 17 full-width eight-bit gains or a contiguous 136-bit stream. Bits 5..7 of each byte are discarded before the register write. Raw decimal 16 (`0x10`) and 48 (`0x30`) both send 16; raw 32 (`0x20`) sends 0. No independent flags within the surviving five bits have been established; strength behavior is observed, while the exact transfer equation/indexing remains unknown.
+
+The 24-byte matrix contains twelve LE words masked to 10/7 bits. The fixed color writer consumes low bytes of words 0..12; words 13..21 participate in the separate adaptive path. Hardware can interpret subfields internally, so exact packing does not prove a semantic name or equation. The build-07 word-1 values 127/128/129 test continuity across bit 7, not a presumption that each bit is a flag.
+
+JSON names `matrix`, `saturation`, `color` and `preview` are editor labels. Save JSON separates raw record hex, derived register bits and preview assumptions. Copy config is a compact delta against the explicitly named `editor-neutral-v1` baseline; it does not silently use whichever factory reference is selected. Both formats can be loaded. The compare column offers editor-neutral and original H63P/H63S static defaults for the **known 17/88-byte fields only**; unknown factory values show `?`, and adaptive runtime Normal is not claimed as a static reference.
+
+## Build 07: posterization variations and bit masking
+
+One original-backup binary, **Normal + 20 probes = positions 0..20**. The user requested both known LUT posterization and the bookmarked primary palette, including combinations. Distinct IDs avoid cached selections. Selected LUT IDs' grayscale matrix pointers are cleared, so their channel LUTs act on baseline RGB; no apply-code hooks are added. The twenty-first Down press wraps to Normal; Up reverses.
+
+| Position | Test | Compare |
+| ---: | --- | --- |
+| 1 | Fixed color words 0..3 all 128; no fixed channel LUT | LUT control; identical parameters to 10 |
+| 2 | R/G/B four-level LUT + same fixed color control | Repeats 03/1's exact LUT values; compare with 1 |
+| 3 | Same four-level LUT + fixed words `[128,64,128,128]` | Only word 1 differs from 2; only LUT differs from 11 |
+| 4,5 | Four-level quantization on R/G only, then B only | Channel isolation; other channels identity |
+| 6 | Eight-level R/G; B identity | Compare with 4 |
+| 7,8 | R/G four levels; B two/eight levels | Compare with all-four at 2 |
+| 9 | Eight-level B; R/G identity | Compare with 5 |
+| 10 | Fixed color control, words 0..3 all 128 | Control for 11..17 |
+| 11 | Word 1 = 64, no fixed channel LUT | Exact 06/11 bookmark parameters |
+| 12,13 | Word 1 = 127,129 | Compare against 128 at 10; a large discontinuity could support sign/mode behavior. Small/no visible changes are inconclusive |
+| 14 | Word 1 = 192 | Bright-side reference |
+| 15,16 | Word 1 = 64, word 2 = 96,160 | Does brightness shift palette boundaries/visibility? |
+| 17 | Word 1 = 64, word 0 = 192 | Contrast interaction |
+| 18,19 | All raw saturation bytes 16,48 | Same low-five-bit fields; should match after exposure settles |
+| 20 | All raw saturation bytes 32 | Effective fields zero; expect grayscale |
+
+Quantizers use `round(floor(x/(256/N))*255/(N-1))` for N = 2,4,8. All-four levels are exactly `0,85,170,255`; eight levels are `0,36,73,109,146,182,219,255`. This is a 1D input->output curve per channel, not a 3D color cube or RGB565 format. The sparse-primary effect in 06/11 was produced without modifying these LUTs.
+
+LUT-only probes 2/4..9 and controls 1/10 share the same fixed 88-byte record. This holds the color stage constant across channel/level comparisons. Positions 10/11/2/3 form a matched comparison of word 1 = 128/64 with the channel LUT disabled/enabled. Sharing the *unchanged* control pointer is intentional; distinct effect IDs still select different LUT paths, and no skipped color rewrite is needed when its values remain identical.
+
+Storage: four 88-byte records at `81614 + 88*i`, five at `8DF20 + 88*i`, and three 17-byte records at `8E0D8/8E0EC/8E100` (four-byte aligned). The last curve ends at `8E111`, before L4 at `8E120`. L0/L1/L3/L4 become 8/4/2/8-level tables at `8E320/8E520/8E220/8E120`. L2 identity (`8E420`) and adaptive baseline LUT data are retained: fallback apply code uses the identity table at profile offset `1444`, not the modified library tables. Special ID 1F and edge stages are excluded; their inactive templates provide storage. Grayscale matrix `8177E`, baseline tone `8DD20`, media and flash tail remain intact. Header/tail export rules are unchanged. Binary order and timestamp: [bin/README.md](../bin/README.md).
+
+Validation: build 07 passed an independent changed-byte allowlist, all 20 selected IDs/records, eight original LUT-dispatch paths, four exact quantizer tables, all ten media comparisons and preservation of baseline tone/identity/grayscale data. Raw instruction execution covered 105 cycle transitions including reset and both full 21-position wraps. Eight input patterns were executed through the original 17-byte writer and matched editor register packing (including high-bit aliases). Export is 1,048,575 bytes with full LE32 timestamp and exactly one final FF removed. Original and 01..06 remain unchanged. Build-07 hardware results are pending.
+
+## Editor update after build 06
+
+Three independent source pairs (camera, bars, image) share one configuration. Loading/resetting an image/chart does not stop the camera. All six previews stay visible while parameters scroll. Preset/import changes preserve open sections and selected table indices. A comparison column shows reference/delta values; italic labels mark unresolved meanings/models. LUT/tone curves can be dragged or edited by index/output sliders; a dashed reference curve is drawn only where values are known. Curves connect discrete table samples for display, without changing the lookup behavior.
+
+The optional hue illustration now rotates in the direction supported by 06/13/14; its 120-degree default span and formula remain unverified. Matrix offsets and word 1 still default to unmodeled. The editor preserves all raw saturation bytes and separately exports the five-bit register fields. It does not invent synthetic large-pixel noise to mimic sensor behavior.
+
+Thirteen model tests pass. Isolated browser checks cover all six previews, simultaneous synthetic camera/image/chart sources, preserved open menus/table index, real factory reference values and unknown markers, italic labels, compact clipboard success/fallback/import, raw-byte/register output, live LUT sliders and curve dragging. Desktop and 390px mobile checks keep all six preview canvases visible with no horizontal overflow. Physical webcam and ISP matching remain hardware checks.

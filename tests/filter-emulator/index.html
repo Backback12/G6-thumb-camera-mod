@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>G6 filter editor</title>
+<style>
+  body { font: 13px system-ui,sans-serif; margin: 12px; max-width: 1400px; }
+  h1 { font-size: 18px; margin: 8px 0; } button,input,select,textarea { font: inherit; }
+  button,select { margin: 2px; } details { margin: 8px 0; }
+  main { display: grid; grid-template-columns: minmax(0,1fr) 410px; gap: 14px; align-items: start; }
+  .preview { position: sticky; top: 8px; background: white; }
+  .editor { max-height: calc(100vh - 90px); overflow-y: auto; padding-right: 8px; }
+  .slots { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+  .slot h2 { font-size: 14px; margin: 4px 0; } .source-controls { min-height: 100px; }
+  .source-controls input,.source-controls select { max-width: 98%; } .source-status { display: block; overflow-wrap: anywhere; }
+  figure { margin: 0; min-width: 0; }
+  .slot canvas { display: block; width: 100%; height: 21vh; max-height: 200px; object-fit: contain; background: #eee; } figcaption { margin: 3px 0; }
+  .control { display: grid; grid-template-columns: minmax(85px,1fr) minmax(45px,100px) 64px 78px; gap: 5px; align-items: center; margin: 1px 0; }
+  .compare { font-size: 11px; color: #555; overflow-wrap: anywhere; } .different { font-weight: bold; color: #111; }
+  .unknown { font-style: italic; } .heading { color: #555; font-size: 11px; }
+  .curve { width: 100%; height: 120px; display: block; touch-action: none; border: 1px solid #ccc; cursor: crosshair; }
+  input[type=range] { width: 100%; margin: 1px; } input[type=number] { width: 60px; padding: 0; }
+  input[size],select { max-width: 98%; } textarea { width: 96%; min-height: 45px; font-size: 11px; }
+  .note { color: #555; } #status { min-height: 20px; } summary { cursor: pointer; }
+  @media (max-width: 760px) {
+    main { grid-template-columns: 1fr; } .preview { top: 0; z-index: 1; padding-bottom: 5px; border-bottom: 1px solid #ccc; }
+    .editor { max-height: none; overflow: visible; padding: 0; } .slot canvas { height: 11vh; }
+    .source-controls { min-height: 115px; font-size: 11px; } .source-controls button { font-size: 11px; }
+  }
+</style>
+<h1>G6 filter editor</h1>
+<p>Approximate ISP preview. Firmware values are preserved exactly; appearance is not a hardware prediction.</p>
+<main><section class="preview">
+<div class="slots">
+  <section class="slot"><h2>Camera</h2><div class="source-controls">
+    <button id="camera">Start camera</button><button id="stop" disabled>Stop camera</button>
+    <select id="device" aria-label="Camera device"><option value="">Default camera</option></select>
+    <small id="camera-status" class="source-status">Camera off</small>
+  </div><figure><figcaption>Before</figcaption><canvas id="camera-input" width="480" height="320"></canvas></figure>
+  <figure><figcaption>After</figcaption><canvas id="camera-output" width="480" height="320"></canvas></figure></section>
+  <section class="slot"><h2>Color bars</h2><div class="source-controls">
+    <button id="bars">Reset bars + ramps</button><small class="source-status">Built-in RGB chart</small>
+  </div><figure><figcaption>Before</figcaption><canvas id="bars-input" width="480" height="320"></canvas></figure>
+  <figure><figcaption>After</figcaption><canvas id="bars-output" width="480" height="320"></canvas></figure></section>
+  <section class="slot"><h2>Image</h2><div class="source-controls">
+    <input id="image" type="file" accept="image/*" aria-label="Image file"><button id="clear-image">Clear image</button>
+    <small id="image-status" class="source-status">Choose an image</small>
+  </div><figure><figcaption>Before</figcaption><canvas id="image-input" width="480" height="320"></canvas></figure>
+  <figure><figcaption>After</figcaption><canvas id="image-output" width="480" height="320"></canvas></figure></section>
+</div>
+<p id="status" role="status" aria-live="polite">One configuration applies to all three sources.</p>
+<video id="video" muted playsinline hidden></video>
+</section><section class="editor" aria-label="Filter parameters">
+<p><label>Preset <select id="preset"><option value="">Neutral preview</option></select></label>
+  <button id="reset">Reset</button><button id="save">Save JSON</button><button id="copy">Copy config</button>
+  <label>Load JSON <input id="load" type="file" accept=".json,application/json"></label></p>
+<p><label>Name <input id="name" value="Untitled"></label></p>
+<label>Compare values with <select id="reference"><option value="editor">Editor neutral (approximate)</option></select></label>
+<p id="reference-note" class="note">Editor identity/default values; not the camera's adaptive Normal.</p>
+<p class="note"><i>Italics = unresolved meaning or model.</i> Reference column shows value / delta. ? = no verified factory value.</p>
+<textarea id="copy-fallback" aria-label="Config to copy" hidden readonly></textarea>
+<div id="controls"></div>
+<details><summary>Preview assumptions</summary>
+  <p class="note unknown">These settings change the simulation only. They are not firmware parameters.</p>
+  <label>Matrix offsets <select id="offset-model"><option value="ignore">Ignore (meaning unresolved)</option><option value="signed">Signed 7-bit additive hypothesis</option><option value="unsigned">Unsigned additive hypothesis</option></select></label><br>
+  <label><input type="checkbox" id="unknown-model">Illustrate word 1 as luma gain and word 3 as hue rotation (speculative)</label>
+  <p class="note">This does not reproduce the bookmarked primary-band or blue-shadow effects. Unknown words 4..21 and edge control fields are stored only.</p>
+  <div id="assumptions"></div>
+  <label>Stage order <input id="order" size="55" value="matrix,color,saturation,lut,tone,edge"></label><button id="apply-order">Apply order</button>
+</details>
+<details><summary>Parameter JSON / exact record bytes</summary>
+  <p class="note">JSON group names are editor labels, not recovered firmware structs. Raw bytes and derived register bits are separate from preview assumptions; these bits describe entered records, not a live register dump. Copy config contains changes from editor-neutral-v1 and can be loaded as JSON. Neither format is installable firmware.</p>
+  <textarea id="json" readonly aria-label="Parameter JSON and record bytes" rows="10"></textarea>
+</details>
+</section></main>
+<script src="/model.js"></script><script src="/app.js"></script>
+</html>

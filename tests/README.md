@@ -4,7 +4,8 @@ All analysis uses `original/backup1.bin`, 1,048,576 bytes with SHA-256 `278551ea
 
 ## Reproduce
 
-- `node tests/tools/patch_g6.js --tests --round 2` creates the two follow-up eight-position filter builds and updates `bin/README.md`, preserving 01..03. Use `--round 1` for the original three. See [analysis/MODDING.md](analysis/MODDING.md) for timestamps, repeat tests and patch recipes.
+- `node tests/tools/patch_g6.js --tests --round 4` creates build 07 (Normal + 20 LUT/color/bit probes), preserving 01..06. See [analysis/MODDING.md](analysis/MODDING.md) for timestamps and patch recipes.
+- `node tests/filter-emulator/server.js` opens the dependency-free [filter editor](filter-emulator/README.md) at `http://127.0.0.1:8787`: six simultaneous before/after views, compact controls, neutral/factory comparisons, draggable LUT curves, Save JSON and Copy config. Unknown meanings are italicized; ISP equations remain approximate.
 
 - `python3 tests/tools/survey.py` produces the header, string, entropy, pointer, media and filter tables in `analysis/` (requires Pillow).
 - `powershell -NoProfile -ExecutionPolicy Bypass -File tests/tools/extract_ui.ps1` produces `analysis/icons.png`, `icons.tsv` and `ui_text.tsv` from the original (Windows/System.Drawing; no firmware writes).
@@ -120,4 +121,4 @@ For an in-place icon replacement, preserve its dimensions and byte count and use
 
 The EV setting resolves to a digital adjustment of the 88-byte record's word 2 on one sensor path; baseline sensor records also confirm that Normal varies by sensor profile. The eight-position test cycle is confirmed as startup 0 plus seven effects; the extra 8 in the owner's first curve log was a numbering error.
 
-Five filter binaries, Unix timestamps and position lists are in [bin/README.md](../bin/README.md). Recipes 01..03 have owner feedback; new 04/05 isolate matrix sign/offset fields and words 0/1/3 with brightness held fixed. No fine-band or convolution tests are included. Exports use the original backup, full-word timestamps and one final-FF removal; checks cover patch ranges, pointers, original media and both cycle directions. Other proposed mode/settings/button changes are documented only.
+Seven filter binaries, timestamps and position lists are in [bin/README.md](../bin/README.md). 01..06 have feedback: individual offset fields support signed RGB biases; all 64 repeats blue-shadow noise, all 127 appears normal. **06/11, word 1 = 64**, adds a bookmarked primary palette without changing LUTs. This differs from **03/1**, whose four-level LUT deliberately posterizes each channel. Writer `4EB74` masks each of 17 stored saturation bytes to five bits; upper three bits are discarded. Build 07 varies/combines the two palette mechanisms and tests raw 16/48/32. [Logs/bookmarks](FILTERS_Plan.md#bookmarked-looks) retain exact parameters. Exports still use the original backup, full-word timestamps and one final-FF removal. Other button/settings mods remain documented only.
