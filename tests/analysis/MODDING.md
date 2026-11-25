@@ -55,7 +55,7 @@ Option entries are eight bytes: metadata word, then value/text resource ID. In t
 
 The self-timer consumes setting `0x21` at `0x47048`; countdown rendering `0x4655C` rejects values above **10** at `0x46568`. Thus the existing 30S label/value does not prove full 30-second UI support. Sequence values `9D..9F` are outside the numeric resolver range and are compared explicitly in `0x46F98`; burst count changes require the capture branches too.
 
-EV labels +2..-2 map to internal values **5,4,3,2,1** at `0x7E5E4..5F4`. `0x49A20` passes range 5 and step 16 to `0x59260`. On its digital path, it adds **+32,+16,0,-16,-32** to the saved baseline of the 88-byte record's word 2, clamps to `0..255`, and writes `B15C[23:16]`. Another sensor path exists, so this is a conditional digital EV adjustment. Round-1 hardware confirms brightness changes at word 2. Word 0's contrast/gain interpretation has supporting observations; its formula remains unknown.
+EV labels +2..-2 map to internal values **5,4,3,2,1** at `0x7E5E4..5F4`. `0x49A20` passes range 5 and step 16 to `0x59260`. Its digital path adds **+32,+16,0,-16,-32** to saved baseline word 2. The unsigned clamp sends underflow to 255 (stock values avoid it). Mode 2 stores the value for the adaptive updater; other modes also write `B15C[23:16]` immediately. Another sensor path exists. Hardware confirms word-2 brightness behavior; word 0's exact contrast equation remains unknown.
 
 ## Sensor profiles explain baseline differences
 
@@ -63,13 +63,14 @@ The sensor directory starts at `0x8CEEC`, using 68-byte descriptors relative to 
 
 - Their baseline 88-byte records at `0x9224C/0x9298C` start with `136,128,128,128` and `160,136,136,128`, respectively; both differ from effect `1E`'s `255,128,200,128`.
 - Their 17-value curves at `0x9231C/0x92A5C` are identical: `8,10,12,14,16,18,19,20,21,22,23,24,24,24,22,22,20`. Hardware broad-band tests support brightness-dependent saturation; exact indexing is unresolved.
+- Working profile bases are `0x91B98/0x922D8` (configuration block minus `0x88`). Matrices at base `+0x39C` contain sign-extended negatives and row sums 255/256, strongly supporting signed Q8. Updater `0x58184` jointly scales words 4..12 by a histogram-selected Q4 gain. Build 08 identifies those words as dark-to-bright color-strength bands; precise knots/units remain unknown. [Instruction evidence](../FILTERS_Plan.md#further-instruction-tracing), [07/08 results](../FILTERS_Plan.md#hardware-feedback-builds-07-and-08).
 
 ## Build and repeat experiments
 
 The patch helper uses Node's standard library. It preserves offsets, checks original bytes, writes a **full 32-bit Unix timestamp at `0x14`**, then removes **exactly one final `FF` byte**. It accepts either the original 1,048,576-byte image or an already trimmed image; the latter is normalized internally so it is not shortened a second time. It does not perform JPG/WAV replacements.
 
 ```powershell
-node tests/tools/patch_g6.js --tests --round 4
+node tests/tools/patch_g6.js --tests --round 5
 # Repeat LUT/color/bit build 07 with a newer timestamp:
 node tests/tools/patch_g6.js --tests --round 4 --force
 # Rebuild the original 01..03 recipes instead:
@@ -78,7 +79,7 @@ node tests/tools/patch_g6.js --tests --round 1 --force
 node tests/tools/patch_g6.js --tests --round 4 --force --min-timestamp LAST_INSTALLED_UNIX
 ```
 
-The [binary catalog](../../bin/README.md) records all rounds' timestamps and zero-based positions. Round 1 = 01..03, round 2 = 04/05, round 3 = 06 (14 probes), round 4 = 07 (20 probes). Rebuilding one round preserves the others; all known builds contribute to the timestamp floor. Reusing an older file will not satisfy the owner's newer-timestamp requirement. The visible update worker established a difference check; stricter behavior elsewhere remains possible, so exports follow the hardware constraint. Raw feedback is in [FILTERS_Plan.md](../FILTERS_Plan.md).
+The [binary catalog](../../bin/README.md) records timestamps and zero-based positions. Round 1 = 01..03, 2 = 04/05, 3 = 06 (14 probes), 4 = 07 (20 LUT/primary/bit probes), 5 = 08 (20 nine-control probes). All have owner feedback. Rebuilding one round preserves the others; all known files set the timestamp floor. Repeating 07 after 08 needs a newer timestamp. The visible updater checks difference; exports also follow the owner's newer-timestamp constraint. Raw feedback: [FILTERS_Plan.md](../FILTERS_Plan.md).
 
 The [local editor](../filter-emulator/README.md) shows simultaneous camera/chart/image pairs, reference values and LUT curves. Save JSON includes record hex and derived register fields; Copy config makes an importable delta from editor-neutral-v1. Both remain editor formats, not this helper's `--recipe`: storage offsets and enabled pointers must be allocated separately. Labels/preview assumptions do not establish unknown hardware structures or equations.
 

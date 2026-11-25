@@ -1,6 +1,6 @@
 # Firmware test builds
 
-Next test: **07**, LUT/primary-color variations and bit masking (Normal + 20 probes). Each timestamp must be newer than the installed firmware; previously supplied build 06 is Unix **1795378051**. Rebuild before repeating an older test.
+Builds **01..08 have owner feedback**. Build 08 identifies nine color-strength bands ordered dark to bright; 07 supports LUT palettes and saturation-bit masking. Further LUT-only calibration is deprioritized. Every update timestamp must exceed the installed firmware; rebuild before returning to an older file.
 
 Source: original backup, SHA-256 `278551ea79d1485115e52d2e4e2ad49ce8aa616bedd6babd15d194a41e286184`. New files are **1,048,575 bytes**: full little-endian Unix timestamp at `0x14..0x17`, then exactly one final `FF` removed. Asset bytes are original.
 
@@ -16,14 +16,15 @@ Source: original backup, SHA-256 `278551ea79d1485115e52d2e4e2ad49ce8aa616bedd6ba
 | [filters-05-color-fields](filters-05-color-fields/hx330x_sdk.bin) | 1795369669 | 2026-11-22T17:47:49.000Z | Contrast and adjacent color fields; Normal + 7 test filters. |
 | [filters-06-calibration](filters-06-calibration/hx330x_sdk.bin) | 1795378051 | 2026-11-22T20:07:31.000Z | Combined offset and color calibration; Normal + 14 test filters. |
 | [filters-07-poster-bits](filters-07-poster-bits/hx330x_sdk.bin) | 1795388951 | 2026-11-22T23:09:11.000Z | LUT/primary posterization and bit masking; Normal + 20 test filters. |
+| [filters-08-nine-controls](filters-08-nine-controls/hx330x_sdk.bin) | 1795496042 | 2026-11-24T04:54:02.000Z | Nine brightness-adapted color controls; Normal + 20 test filters. |
 
-Rebuild 07: `node tests/tools/patch_g6.js --tests --round 4 --force`. Earlier rounds: 1 = 01..03, 2 = 04/05, 3 = 06. If needed, add `--min-timestamp NUMBER`. Timestamps exceed all existing known builds and the minimum. Rebuilding one round preserves the others.
+Rebuild 08: `node tests/tools/patch_g6.js --tests --round 5 --force`; 07 uses round 4. Earlier rounds: 1 = 01..03, 2 = 04/05, 3 = 06. Add `--min-timestamp NUMBER` when needed. All known files supply the timestamp floor; rebuilding one round preserves the others.
 
-01..06 have owner feedback; original 04/7 was unobserved but its all-127 offsets were repeated at 06/7. 07 awaits hardware testing. See [observations/bookmarks](../tests/FILTERS_Plan.md#hardware-feedback-build-06). Button behavior is original apart from cycle length.
+Latest [07/08 feedback](../tests/FILTERS_Plan.md#hardware-feedback-builds-07-and-08): 07/8 is the preferred cartoon bookmark (replaces 07/7). Build-08 shadow noise and brightness-band observations are diagnostic notes. Original 04/7 was unobserved; the same offsets were later tested at 06/7.
 
-**Position 0 = startup Normal**; short Down advances and Up reverses. 01..05 have 0..7; 06 has 0..14; 07 has 0..20 (the twenty-first Down returns to Normal).
+**Position 0 = startup Normal**; short Down advances and Up reverses. 01..05 have 0..7; 06 has 0..14; 07/08 have 0..20 (the twenty-first Down returns to Normal).
 
-Keep scene, lighting and EV/WB fixed. In 07, compare LUT-only probes with 1, color-only probes with 10, combined posterization at 3 with 2 and 11, and saturation 18/19 with each other. Position 20 should be grayscale. Report `folder / position / change`; small or absent changes at 127/129 do not by themselves disprove bit fields.
+Keep scene, lighting and EV/WB fixed. In 08, compare every probe with position 1, noting which hues/brightness bands change, whether effects follow an object across the screen, and whether gray/white/black, detail or noise change. In 07, compare 1/2/10/11/3 for matched LUT/color effects; 18/19 should match and 20 should be grayscale.
 
 ## filters-01-curve
 
@@ -164,10 +165,42 @@ SHA-256: `1e71b411c1de140342d87d30a09eebce5929b413838cf59da5350e77057344a1`.
 
 SHA-256: `cb7ce05a85f7bbda2a8821fc16f5a5a9ca890eaecc9531cb66b0755edf0846e2`.
 
+## filters-08-nine-controls
+
+20 probes plus Normal: fixed control, isolated words 4..12 at 0/255, then all nine at 128. Compare with position 1.
+
+| Position | Effect ID | Test | What to compare |
+| ---: | --- | --- | --- |
+| 0 | `00` | Normal | Original mode-dependent baseline. |
+| 1 | `01` | Fixed color control | Words 0..3 = 128, words 4..12 = 64; other stages restore baseline. |
+| 2 | `19` | Word 4 = 0 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 3 | `1A` | Word 4 = 255 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 4 | `1B` | Word 5 = 0 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 5 | `1C` | Word 5 = 255 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 6 | `1D` | Word 6 = 0 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 7 | `1E` | Word 6 = 255 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 8 | `20` | Word 7 = 0 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 9 | `21` | Word 7 = 255 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 10 | `22` | Word 8 = 0 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 11 | `23` | Word 8 = 255 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 12 | `24` | Word 9 = 0 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 13 | `25` | Word 9 = 255 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 14 | `26` | Word 10 = 0 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 15 | `27` | Word 10 = 255 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 16 | `28` | Word 11 = 0 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 17 | `29` | Word 11 = 255 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 18 | `2A` | Word 12 = 0 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 19 | `2B` | Word 12 = 255 | Only this word differs from 1. Report affected hue/brightness/position, noise/detail, and black/white behavior. |
+| 20 | `2C` | Words 4..12 all 128 | Double all nine color-strength values; observed overall saturation increase, exact scale unresolved. |
+
+SHA-256: `9355e680f73f43cd390a99e5099e8118b077318d593044a9931594415b65a313`.
+
 Build 03 repurposes inactive templates at `0x81614..0x81773`. Build 05 uses the same area for four 88-byte records and `0x8DF20..0x8E027` for three more, replacing part of the unused ID-1F-only tone table. Neither build selects edge/1F effects; grayscale matrix `0x8177E`, baseline tone table `0x8DD20`, and media remain intact. No flash-tail allocation or convolution tests are included.
 
 Build 06 uses seven matrices at `0x81614..0x816BB`, two color records at `0x816BC..0x8176B`, and five at `0x8DF20..0x8E0D7`. These replace inactive edge/parameter and ID-1F tone data. All selected edge bytes are zero; ID 1F is absent. Baseline tone table, channel LUTs, grayscale matrix and media remain intact. The build is independent of earlier patches.
 
 Build 07 uses four color records at `0x81614..0x81773`, five at `0x8DF20..0x8E0D7`, and three 17-byte curves at `0x8E0D8/8E0EC/8E100`. LUTs L0/L1/L3/L4 become 8/4/2/8-level tables; L2 identity and adaptive baseline tables are preserved. LUT probes and positions 1/10 share the same fixed color-control pointer; position 3 changes only word 1 versus 2. Selected LUT IDs have their grayscale matrix cleared. No 1F/edge effects, media changes or flash-tail allocation.
+
+Build 08 stores full 88-byte records at `0x81614 + 88*i` (4), `0x8DF20 + 88*i` (14), and `0x8E520 + 88*i` (2). Inactive effect templates, ID-1F tone data and unused LUTs are repurposed; selected IDs are 01 and 19..2C excluding 1F, so all channel-LUT paths restore baseline. L2 identity, adaptive baseline data, normal edge kernels, original media and flash tail remain intact. No new processing-code hooks.
 
 Technical details: [filter findings](../tests/FILTERS.md), [analysis and test plan](../tests/FILTERS_Plan.md), [patch recipes](../tests/analysis/MODDING.md).

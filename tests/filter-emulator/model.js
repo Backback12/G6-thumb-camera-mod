@@ -11,7 +11,7 @@
       color: [128,128,128,128, ...Array(9).fill(64), 10,10,16,16,16,16,16,16,6],
       lut: [identity(), identity(), identity()], tone: identity().map(v => v * 4),
       kernels: [Array(25).fill(0), Array(25).fill(0)], edgeControl: [0,4,15],
-      preview: { offsets: 'ignore', colorUnknown: false, saturationUnity: 16, hueSpan: 120,
+      preview: { offsets: 'ignore', colorUnknown: false, toneDomain: 'rgb', saturationUnity: 16, hueSpan: 120,
         contrastPivot: 128, kernelDivisor: 1, kernelBias: 128,
         order: ['matrix','color','saturation','lut','tone','edge'] } };
   }
@@ -41,7 +41,7 @@
       if (typeof input.enabled?.[k] !== 'boolean') throw Error(`Missing stage: ${k}`);
       s.enabled[k] = input.enabled[k];
     }
-    for (const [k, count, max] of [['matrix',9,1023],['offsets',3,127],['saturation',17,255],['color',22,0xFFFFFFFF],['tone',256,1023]])
+    for (const [k, count, max] of [['matrix',9,1023],['offsets',3,127],['saturation',17,255],['color',22,0xFFFFFFFF],['tone',256,65535]])
       s[k] = array(input[k], count, max, k);
     if (!Array.isArray(input.lut) || input.lut.length !== 3 || !Array.isArray(input.kernels) || input.kernels.length !== 2)
       throw Error('Expected three LUTs and two kernels.');
@@ -52,6 +52,7 @@
     const p = input.preview;
     if (!p || !['ignore','signed','unsigned'].includes(p.offsets) || typeof p.colorUnknown !== 'boolean') throw Error('Invalid preview model.');
     s.preview.offsets = p.offsets; s.preview.colorUnknown = p.colorUnknown;
+    if(p.toneDomain!==undefined){if(!['rgb','luma'].includes(p.toneDomain))throw Error('Invalid tone domain.');s.preview.toneDomain=p.toneDomain;}
     for (const [k, lo, hi] of [['saturationUnity',1,31],['hueSpan',0,360],['contrastPivot',0,255],['kernelDivisor',1,1024],['kernelBias',-255,255]]) {
       if (!Number.isFinite(p[k]) || p[k] < lo || p[k] > hi) throw Error(`Invalid preview setting: ${k}`);
       s.preview[k] = p[k];
@@ -98,8 +99,11 @@
         } else if (stage === 'lut') {
           r=s.lut[0][r];g=s.lut[1][g];b=s.lut[2][b];
         } else if (stage === 'tone') {
-          // Per-channel mapping is a convenience model; the ISP's tone-table domain is unresolved.
-          r=s.tone[r]*255/1023;g=s.tone[g]*255/1023;b=s.tone[b]*255/1023;
+          // Both domains are hypotheses: the firmware copies one shared u16 table without a 10-bit mask.
+          if(p.toneDomain==='luma') {
+            const y=.299*r+.587*g+.114*b,delta=s.tone[Math.round(y)]*255/1023-y;
+            r+=delta;g+=delta;b+=delta;
+          } else {r=s.tone[r]*255/1023;g=s.tone[g]*255/1023;b=s.tone[b]*255/1023;}
         }
         out[i]=clamp(r);out[i+1]=clamp(g);out[i+2]=clamp(b);
       }
@@ -115,7 +119,7 @@
     const base=defaults(),changes={};
     for(const key of ['enabled','matrix','offsets','saturation','color','lut','tone','kernels','edgeControl','preview']) {
       if(['enabled','preview'].includes(key)) {
-        const fields={};for(const field of Object.keys(base[key]))if(JSON.stringify(s[key][field])!==JSON.stringify(base[key][field]))fields[field]=s[key][field];
+        const fields={};for(const field of new Set([...Object.keys(base[key]),...Object.keys(s[key])]))if(JSON.stringify(s[key][field])!==JSON.stringify(base[key][field]))fields[field]=s[key][field];
         if(Object.keys(fields).length)changes[key]=fields;
       } else if(JSON.stringify(s[key])!==JSON.stringify(base[key]))changes[key]=s[key];
     }
@@ -134,6 +138,52 @@
     for(let k=0;k<2;k++)for(let row=0;row<5;row++)r[(0xB104+k*20+row*4).toString(16).toUpperCase()]=h(packed(s.kernels[k].slice(row*5,row*5+5),6));
     return r;
   }
-  const api={defaults,validate,process,records,compact,registers,signed};
+  function adaptiveColor(words,mean) {
+    const divisor=words[21]>>>0;
+    if(!divisor)return {valid:false,error:'Zero divisor: firmware unsigned division is undefined; no substitute gain is assumed.'};
+    const bucket=Math.min(7,Math.floor((mean>>>0)/divisor)),gain=words[13+bucket]>>>0,scaled=words.slice();
+    for(let i=4;i<=12;i++)scaled[i]=(Math.imul(words[i],gain)>>>0)>>>4;
+    return {valid:true,mean:mean>>>0,bucket,gain,divisor,scaledWords:scaled,bytes:scaled.slice(0,13).map(v=>v&255)};
+  }
+  function normalEdge(kernels,args) {
+    const effective=kernels.map(a=>a.map(v=>v&63));
+    // 0x53340 compares UNSIGNED; strength >31 wraps the subtraction and selects the upper limit.
+    const center=Math.min(31,Math.max(16,(31-(args[4]&255))>>>0));effective[0][12]=center;
+    const state=defaults();state.kernels=effective;state.edgeControl=[args[0]&63,args[1]&7,args[3]&15];
+    const packed=registers(state),bits={},middle=args[2]&7;
+    for(let bank=0;bank<2;bank++)for(let row=0;row<5;row++){const name=(0xB104+bank*20+row*4).toString(16).toUpperCase();bits[name]=packed[name];}
+    bits['B100[15:0]']=`0x${((state.edgeControl[0]<<10)|(state.edgeControl[1]<<7)|(middle<<4)|state.edgeControl[2]).toString(16).padStart(4,'0')}`;
+    return {kernels:effective,center,middle,registers:bits,unusedArgument6:args[5]};
+  }
+  function digitalEv(base,choice) {
+    return Math.min(255,(base+(choice-3)*16)>>>0);
+  }
+  function fieldInfo(path,value) {
+    if(!path)return null;
+    const [group,i,j]=path;let width,storage,register,lsb=0,sign=false,note='';
+    if(group==='matrix'){width=10;storage=16;register=['B0E4','B0E8','B0EC'][i%3];lsb=Math.floor(i/3)*10;sign=true;}
+    else if(group==='offsets'){width=7;storage=16;register='B0F0';lsb=i*10;sign=true;note='signed RGB bias supported; units/rounding unresolved';}
+    else if(group==='saturation'){width=5;storage=8;register=['B168','B16C','B170'][Math.floor(i/6)];lsb=(i%6)*5;}
+    else if(group==='color'){
+      storage=32;
+      if(i<4){width=8;register='B15C';lsb=[24,8,16,0][i];}
+      else if(i<8){width=8;register='B160';lsb=(i-4)*8;}
+      else if(i<12){width=8;register='B164';lsb=(i-8)*8;}
+      else if(i===12){width=8;register='B0FC';lsb=11;}
+      else {width=32;register='CPU only';note=i<21?'baseline shared gain /16; ignored by fixed effect writer':'baseline brightness bucket divisor; ignored by fixed effect writer';}
+      if(i>=4&&i<=12)note='fixed path low byte shown; baseline multiplies the full u32 before low-byte packing';
+    } else if(group==='kernels'){width=6;storage=8;register=(0xB104+i*20+Math.floor(j/5)*4).toString(16).toUpperCase();lsb=(j%5)*6;sign=true;}
+    else if(group==='edgeControl'){storage=8;width=[6,3,4][i];register='B100';lsb=[10,7,0][i];note='fixed filter API; B100[6:4] is zero';}
+    else if(group==='lut'){width=8;storage=8;register=`device ${(0x84600+i*0x200+j).toString(16).toUpperCase()}`;note='u8 copied unchanged, not RGB565';}
+    else if(group==='tone'){width=16;storage=16;register=`device ${(0x84400+i*2).toString(16).toUpperCase()}`;note='u16 copied unchanged; 0..1023 observed, no software 10-bit mask';}
+    else return null;
+    const mask=width===32?0xFFFFFFFF:2**width-1,effective=width===32?value>>>0:(value&mask)>>>0;
+    const hex=(n,digits)=>`0x${(n>>>0).toString(16).padStart(digits,'0')}`;
+    return {storage,width,mask:hex(mask,Math.ceil(width/4)),raw:hex(value,storage/4),effective,
+      binary:effective.toString(2).padStart(width,'0'),rawBinary:(value>>>0).toString(2).padStart(storage,'0'),signed:sign?signed(effective,width):null,
+      destinationMask:register.startsWith('B')?hex(mask*2**lsb,8):null,
+      destination:register.startsWith('B')?`${register}[${lsb+width-1}:${lsb}]`:register,note};
+  }
+  const api={defaults,validate,process,records,compact,registers,signed,adaptiveColor,normalEdge,digitalEv,fieldInfo};
   if (typeof module !== 'undefined' && module.exports) module.exports=api; else root.G6=api;
 })(globalThis);

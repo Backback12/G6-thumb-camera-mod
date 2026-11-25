@@ -72,3 +72,35 @@ test('illustrative hue direction agrees with intermediate hardware color descrip
   const green=rgb(s,0,255,0);assert(green[2]>green[0]&&green[2]>green[1]);
   s.color[3]=192;const red=rgb(s,255,0,0);assert(red[0]>red[1]&&red[2]>red[1]);
 });
+test('adaptive color uses one histogram bucket for all nine words and wraps, without clamping',()=>{
+  const w=G6.defaults().color;w[21]=6;w[13]=8;w[14]=32;w[20]=16;
+  const low=G6.adaptiveColor(w,5),next=G6.adaptiveColor(w,6),high=G6.adaptiveColor(w,255);
+  assert.equal(low.bucket,0);assert.deepEqual(low.bytes.slice(4),Array(9).fill(32));
+  assert.equal(next.bucket,1);assert.deepEqual(next.bytes.slice(4),Array(9).fill(128));assert.equal(high.bucket,7);
+  assert.deepEqual(next.scaledWords.slice(0,4),w.slice(0,4));
+  w[4]=255;w[13]=32;assert.equal(G6.adaptiveColor(w,0).bytes[4],254);
+  w[4]=0x80000000;w[13]=16;assert.equal(G6.adaptiveColor(w,0).bytes[4],0);
+  w[21]=0;assert.equal(G6.adaptiveColor(w,128).valid,false);
+});
+test('normal edge center, middle field and unused sixth argument differ from fixed effects',()=>{
+  const kernels=[Array(25).fill(0),Array(25).fill(1)],args=[40,4,3,15,10,123],n=G6.normalEdge(kernels,args);
+  assert.equal(n.center,21);assert.equal(n.middle,3);assert.equal(n.registers['B100[15:0]'],'0xa23f');
+  assert.equal(G6.normalEdge(kernels,[...args.slice(0,4),20,0]).center,16);
+  assert.equal(G6.normalEdge(kernels,[...args.slice(0,4),32,0]).center,31);
+  assert.equal(kernels[0][12],0);assert.deepEqual(G6.normalEdge(kernels,[...args.slice(0,5),255]).registers,n.registers);
+});
+test('bit descriptions distinguish storage, masks, sign, destination and unmasked table copies',()=>{
+  const sat=G6.fieldInfo(['saturation',6],48);assert.equal(sat.raw,'0x30');assert.equal(sat.binary,'10000');assert.equal(sat.destination,'B16C[4:0]');
+  const matrix=G6.fieldInfo(['matrix',3],1023);assert.equal(matrix.signed,-1);assert.equal(matrix.destination,'B0E4[19:10]');assert.equal(matrix.destinationMask,'0x000ffc00');
+  const color=G6.fieldInfo(['color',12],0xABCD1234);assert.equal(color.effective,52);assert.equal(color.destination,'B0FC[18:11]');assert.equal(color.rawBinary.length,32);
+  assert.equal(G6.fieldInfo(['tone',2],65535).width,16);assert.equal(G6.fieldInfo(['lut',2,2],255).width,8);
+});
+test('unsigned digital EV clamp wraps underflow, while stored stock values stay in range',()=>{
+  assert.equal(G6.digitalEv(128,1),96);assert.equal(G6.digitalEv(128,5),160);
+  assert.equal(G6.digitalEv(0,1),255);assert.equal(G6.digitalEv(255,5),255);
+});
+test('legacy configs retain tone default; full u16 tone data survives both JSON formats',()=>{
+  const old=G6.defaults();delete old.preview.toneDomain;assert.equal(G6.validate(old).preview.toneDomain,'rgb');
+  const s=G6.defaults();s.tone[0]=65535;s.preview.toneDomain='luma';assert.deepEqual(G6.validate(G6.compact(s)),s);
+  assert.equal(G6.records(s).tone.slice(0,4),'ffff');assert.throws(()=>G6.validate({...s,tone:s.tone.map(()=>65536)}),/tone/);
+});

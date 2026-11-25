@@ -6,10 +6,14 @@
 <style>
   body { font: 13px system-ui,sans-serif; margin: 12px; max-width: 1400px; }
   h1 { font-size: 18px; margin: 8px 0; } button,input,select,textarea { font: inherit; }
-  button,select { margin: 2px; } details { margin: 8px 0; }
+  button,select { margin: 2px; } details { margin: 8px 0; border: 1px solid #bbb; padding: 6px; }
+  summary { padding: 2px; font-weight: 600; } details[open] > summary { border-bottom: 1px solid #ddd; margin-bottom: 7px; }
+  fieldset { border: 1px solid #bbb; margin: 8px 0; padding: 7px; min-width: 0; }
+  #filter-files { width: 100%; margin: 5px 0; } #folder-status,#filter-file-status { display: block; overflow-wrap: anywhere; }
+  .slot { border: 1px solid #ccc; padding: 5px; min-width: 0; } .slot canvas { box-sizing: border-box; }
   main { display: grid; grid-template-columns: minmax(0,1fr) 410px; gap: 14px; align-items: start; }
-  .preview { position: sticky; top: 8px; background: white; }
-  .editor { max-height: calc(100vh - 90px); overflow-y: auto; padding-right: 8px; }
+  .preview { position: sticky; top: 8px; background: white; min-width: 0; }
+  .editor { max-height: calc(100vh - 90px); overflow-y: auto; padding-right: 8px; min-width: 0; }
   .slots { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
   .slot h2 { font-size: 14px; margin: 4px 0; } .source-controls { min-height: 100px; }
   .source-controls input,.source-controls select { max-width: 98%; } .source-status { display: block; overflow-wrap: anywhere; }
@@ -18,12 +22,14 @@
   .control { display: grid; grid-template-columns: minmax(85px,1fr) minmax(45px,100px) 64px 78px; gap: 5px; align-items: center; margin: 1px 0; }
   .compare { font-size: 11px; color: #555; overflow-wrap: anywhere; } .different { font-weight: bold; color: #111; }
   .unknown { font-style: italic; } .heading { color: #555; font-size: 11px; }
+  .bits { grid-column: 1 / -1; font: 10px ui-monospace,monospace; color: #555; overflow-wrap: anywhere; }
+  .bits-off .bits { display: none; } #adaptive-result { white-space: pre-wrap; font-size: 11px; }
   .curve { width: 100%; height: 120px; display: block; touch-action: none; border: 1px solid #ccc; cursor: crosshair; }
   input[type=range] { width: 100%; margin: 1px; } input[type=number] { width: 60px; padding: 0; }
   input[size],select { max-width: 98%; } textarea { width: 96%; min-height: 45px; font-size: 11px; }
   .note { color: #555; } #status { min-height: 20px; } summary { cursor: pointer; }
   @media (max-width: 760px) {
-    main { grid-template-columns: 1fr; } .preview { top: 0; z-index: 1; padding-bottom: 5px; border-bottom: 1px solid #ccc; }
+    main { grid-template-columns: minmax(0,1fr); } .preview { top: 0; z-index: 1; padding-bottom: 5px; border-bottom: 1px solid #ccc; }
     .editor { max-height: none; overflow: visible; padding: 0; } .slot canvas { height: 11vh; }
     .source-controls { min-height: 115px; font-size: 11px; } .source-controls button { font-size: 11px; }
   }
@@ -55,16 +61,29 @@
   <button id="reset">Reset</button><button id="save">Save JSON</button><button id="copy">Copy config</button>
   <label>Load JSON <input id="load" type="file" accept=".json,application/json"></label></p>
 <p><label>Name <input id="name" value="Untitled"></label></p>
+<fieldset><legend>Filter folder</legend>
+  <button id="folder-open">Open folder</button><button id="folder-refresh" disabled>Refresh</button>
+  <input id="folder-fallback" type="file" webkitdirectory multiple hidden aria-label="Read-only filter folder">
+  <small id="folder-status" class="note">Choose a folder of filter JSON files.</small>
+  <label>Find <input id="filter-search" type="search" placeholder="Filename"></label>
+  <select id="filter-files" size="4" aria-label="Folder filters"></select>
+  <small id="filter-file-status" class="note">No folder file selected</small>
+  <button id="folder-save" disabled>Save</button>
+  <label>New filename <input id="filter-filename" size="20" value="filter.json"></label><button id="folder-save-as" disabled>Save As</button>
+</fieldset>
 <label>Compare values with <select id="reference"><option value="editor">Editor neutral (approximate)</option></select></label>
 <p id="reference-note" class="note">Editor identity/default values; not the camera's adaptive Normal.</p>
 <p class="note"><i>Italics = unresolved meaning or model.</i> Reference column shows value / delta. ? = no verified factory value.</p>
+<label><input id="show-bits" type="checkbox" checked> Show raw hex / effective bits / destination</label>
+<small class="note">Signed values decode the bits; exact pixel arithmetic may still be unknown. Hover for masks and full raw bits.</small>
 <textarea id="copy-fallback" aria-label="Config to copy" hidden readonly></textarea>
 <div id="controls"></div>
 <details><summary>Preview assumptions</summary>
   <p class="note unknown">These settings change the simulation only. They are not firmware parameters.</p>
   <label>Matrix offsets <select id="offset-model"><option value="ignore">Ignore (meaning unresolved)</option><option value="signed">Signed 7-bit additive hypothesis</option><option value="unsigned">Unsigned additive hypothesis</option></select></label><br>
+  <label class="unknown">Tone domain <select id="tone-model"><option value="rgb">Per RGB channel (hypothesis)</option><option value="luma">Luma adjustment (hypothesis)</option></select></label><br>
   <label><input type="checkbox" id="unknown-model">Illustrate word 1 as luma gain and word 3 as hue rotation (speculative)</label>
-  <p class="note">This does not reproduce the bookmarked primary-band or blue-shadow effects. Unknown words 4..21 and edge control fields are stored only.</p>
+  <p class="note">This does not reproduce the bookmarked primary-band or blue-shadow effects. Words 4..12 and edge control fields are stored only; the adaptive gain calculation is shown separately.</p>
   <div id="assumptions"></div>
   <label>Stage order <input id="order" size="55" value="matrix,color,saturation,lut,tone,edge"></label><button id="apply-order">Apply order</button>
 </details>
@@ -73,5 +92,5 @@
   <textarea id="json" readonly aria-label="Parameter JSON and record bytes" rows="10"></textarea>
 </details>
 </section></main>
-<script src="/model.js"></script><script src="/app.js"></script>
+<script src="/model.js"></script><script src="/files.js"></script><script src="/app.js"></script>
 </html>

@@ -8,10 +8,11 @@ const bookmarks = {
   '02/2':'Strong red', '02/4':'Blue-only noise', '02/5':'Red/blue swap', '03/1':'Posterization',
   '03/4':'Bright clipping', '04/6':'Blue-shadow noise', '05/4':'Sparse primary bands',
   '05/6':'Color remap A', '05/7':'Color remap B', '06/3':'Purple channel noise',
-  '06/5':'Blue-shadow noise (confirmed repeat)', '06/11':'Primary-color palette (bookmark)'
+  '06/5':'Blue-shadow noise (confirmed repeat)', '06/11':'Primary-color palette (bookmark)',
+  '07/5':'Blue posterized shadows', '07/8':'Warm cartoon palette (preferred bookmark)'
 };
 const list=[];
-for (const build of [1,2,3,4].flatMap(round=>presets(original,round))) {
+for (const build of [1,2,3,4,5].flatMap(round=>presets(original,round))) {
   const b=patchImage(original,build.patches,original.readUInt32LE(0x14)+1), number=build.folder.slice(8,10);
   build.filters.slice(1).forEach((f,i)=>{
     const s=G6.defaults(),key=`${number}/${i+1}`;
@@ -31,11 +32,16 @@ for (const build of [1,2,3,4].flatMap(round=>presets(original,round))) {
     list.push({key,bookmark:!!bookmarks[key],state:G6.validate(s)});
   });
 }
-const references=[['h63p','H63P',0x9224C,0x9231C],['h63s','H63S',0x9298C,0x92A5C]].map(([key,label,color,sat])=>({
-  key,label:`Factory ${label} (known fields)`,note:`Original ${label} stored color/saturation defaults; runtime adaptation and other fields are not decoded here. ? means unknown, not zero.`,
-  values:{color:Array.from({length:22},(_,i)=>original.readUInt32LE(color+i*4)),saturation:[...original.subarray(sat,sat+17)]}
-}));
-const routes={'/':'index.html','/app.js':'app.js','/model.js':'model.js'};
+const stock=G6.defaults();stock.name='Factory ID 1F (tone + grayscale)';stock.enabled.tone=stock.enabled.saturation=true;stock.saturation.fill(0);stock.tone=Array.from({length:256},(_,i)=>original.readUInt16LE(0x8DF20+2*i));
+list.push({key:'stock/1F',bookmark:false,state:G6.validate(stock)});
+const references=[['h63p','H63P',0x91B98],['h63s','H63S',0x922D8]].map(([key,label,base])=>{
+  const matrix=Array.from({length:12},(_,i)=>original.readUInt16LE(base+0x39C+i*2)),kernels=[0x7F6A4,0x7F688].map(off=>[...original.subarray(off,off+25)]);
+  const args=[0x72F,0x717,0x71F,0x727,0x737,0x73F].map(off=>original[base+off]);
+  return {key,label:`Factory ${label} (known fields)`,note:`Original ${label} stored defaults, not live Normal. Matrix negatives use canonical low-10-bit values here; source u16 words are sign-extended. ? means unknown, not zero.`,
+    values:{matrix:matrix.slice(0,9).map(v=>v&1023),offsets:matrix.slice(9).map(v=>v&127),color:Array.from({length:22},(_,i)=>original.readUInt32LE(base+0x6B4+i*4)),saturation:[...original.subarray(base+0x784,base+0x795)]},
+    normalEdge:{args,...G6.normalEdge(kernels,args)}};
+});
+const routes={'/':'index.html','/app.js':'app.js','/model.js':'model.js','/files.js':'files.js'};
 const port=Number(process.argv[2]||8787);
 if(!Number.isInteger(port)||port<1||port>65535)throw Error('Use a port in 1..65535.');
 const server=http.createServer((req,res)=>{
