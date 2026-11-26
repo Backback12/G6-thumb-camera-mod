@@ -150,7 +150,7 @@ The control word is `B100[15:0] = ((t & 63) << 10) | (4 << 7) | 15`, retaining t
 
 Curve isolation and posterization are now hardware-tested through builds 01..03. Fine index sweeps and kernel experiments are deferred; the current round targets larger, unresolved matrix/color controls.
 
-Apply each batch independently to a copy of the SHA-256-verified original. All addresses below are file offsets; bytes are hex. These are exact test recipes, **not hardware-validated looks**. Keep the original for restoration and use the established update-header procedure separately. Generated test binaries are now listed in [bin/README.md](../bin/README.md); the manual recipes below are separate experiments.
+Apply each batch independently to a copy of the SHA-256-verified original. All addresses below are file offsets; bytes are hex. These are exact test recipes, **not hardware-validated looks**. Keep the original for restoration and use the established update-header procedure separately. Generated test binaries are now listed in [binaries/README.md](binaries/README.md); the manual recipes below are separate experiments.
 
 1. **Count and hidden effects.** Film a complete down-arrow cycle from reset; check whether `2C` precedes normal. For a separate hidden-effect batch, change `0x7C517: 26 -> 03` and `0x7C515: 24 -> 0F`. These replace the two duplicate configurations without extending the table. `03` boosts two LUT channels; `0F` is the existing two-level effect. Check bright highlights for the uninitialized LUT endpoint.
 2. **Isolate the 17-byte stage.** Use the four records below together. Their IDs restore the same other stages. Replace exactly 17 bytes and retain the padding. Capture a grayscale ramp and saturated color patches under fixed lighting at each ID.
@@ -184,7 +184,7 @@ The LUT selection switch is hard-coded for IDs `02..18`; `1F` has its separate t
 
 ## Generated hardware tests
 
-[bin/README.md](../bin/README.md) is the source for the actual **position order, timestamps and flash order**. Three independent builds use the original backup and have eight positions each. The earlier manual recipes are not their position lists.
+[binaries/README.md](binaries/README.md) is the source for the actual **position order, timestamps and flash order**. Three independent builds use the original backup and have eight positions each. The earlier manual recipes are not their position lists.
 
 | Folder | Focus | Experimental data |
 | --- | --- | --- |
@@ -269,7 +269,7 @@ Clarification: "5 is almost the highpass. 6 is the bandpass. 7 is the low pass. 
 
 ## Hardware round 2 (completed)
 
-Two independent builds from the original backup, with eight positions each; no fine saturation-band or kernel tests. Flash **04 then 05** using the newer timestamps in [bin/README.md](../bin/README.md). Positions 0..7 and exact IDs are listed there. Compare against position 1, using large visible changes, a fixed room scene and unchanged EV/WB; allow exposure to settle. Rough descriptions are sufficient.
+Two independent builds from the original backup, with eight positions each; no fine saturation-band or kernel tests. Flash **04 then 05** using the newer timestamps in [binaries/README.md](binaries/README.md). Positions 0..7 and exact IDs are listed there. Compare against position 1, using large visible changes, a fixed room scene and unchanged EV/WB; allow exposure to settle. Rough descriptions are sufficient.
 
 | Build | Seven probes after Normal | Question |
 | --- | --- | --- |
@@ -358,7 +358,7 @@ The unusual broad color bands 01/5..7 also remain available as editor presets (i
 
 ## Combined calibration, round 3
 
-One independent original-backup build, **filters-06-calibration**, with **Normal + 14 probes = positions 0..14**. This avoids another pair of flashes. Every selected ID is distinct, skips hard-coded LUT IDs and special 1F, and has edge stage zero. The fifteenth Down press wraps to Normal; Up reverses. Unix timestamp and exact order are in [bin/README.md](../bin/README.md).
+One independent original-backup build, **filters-06-calibration**, with **Normal + 14 probes = positions 0..14**. This avoids another pair of flashes. Every selected ID is distinct, skips hard-coded LUT IDs and special 1F, and has edge stage zero. The fifteenth Down press wraps to Normal; Up reverses. Unix timestamp and exact order are in [binaries/README.md](binaries/README.md).
 
 | Positions | Probe | Compare / question |
 | --- | --- | --- |
@@ -456,7 +456,7 @@ Quantizers use `round(floor(x/(256/N))*255/(N-1))` for N = 2,4,8. All-four level
 
 LUT-only probes 2/4..9 and controls 1/10 share the same fixed 88-byte record. This holds the color stage constant across channel/level comparisons. Positions 10/11/2/3 form a matched comparison of word 1 = 128/64 with the channel LUT disabled/enabled. Sharing the *unchanged* control pointer is intentional; distinct effect IDs still select different LUT paths, and no skipped color rewrite is needed when its values remain identical.
 
-Storage: four 88-byte records at `81614 + 88*i`, five at `8DF20 + 88*i`, and three 17-byte records at `8E0D8/8E0EC/8E100` (four-byte aligned). The last curve ends at `8E111`, before L4 at `8E120`. L0/L1/L3/L4 become 8/4/2/8-level tables at `8E320/8E520/8E220/8E120`. L2 identity (`8E420`) and adaptive baseline LUT data are retained: fallback apply code uses the identity table at profile offset `1444`, not the modified library tables. Special ID 1F and edge stages are excluded; their inactive templates provide storage. Grayscale matrix `8177E`, baseline tone `8DD20`, media and flash tail remain intact. Header/tail export rules are unchanged. Binary order and timestamp: [bin/README.md](../bin/README.md).
+Storage: four 88-byte records at `81614 + 88*i`, five at `8DF20 + 88*i`, and three 17-byte records at `8E0D8/8E0EC/8E100` (four-byte aligned). The last curve ends at `8E111`, before L4 at `8E120`. L0/L1/L3/L4 become 8/4/2/8-level tables at `8E320/8E520/8E220/8E120`. L2 identity (`8E420`) and adaptive baseline LUT data are retained: fallback apply code uses the identity table at profile offset `1444`, not the modified library tables. Special ID 1F and edge stages are excluded; their inactive templates provide storage. Grayscale matrix `8177E`, baseline tone `8DD20`, media and flash tail remain intact. Header/tail export rules are unchanged. Binary order and timestamp: [binaries/README.md](binaries/README.md).
 
 Validation: build 07 passed an independent changed-byte allowlist, all 20 selected IDs/records, eight original LUT-dispatch paths, four exact quantizer tables, all ten media comparisons and preservation of baseline tone/identity/grayscale data. Raw instruction execution covered 105 cycle transitions including reset and both full 21-position wraps. Eight input patterns were executed through the original 17-byte writer and matched editor register packing (including high-bit aliases). Export is 1,048,575 bytes with full LE32 timestamp and exactly one final FF removed. Original and 01..06 remain unchanged. Owner results are recorded below.
 
@@ -543,7 +543,7 @@ One original-backup build, **Normal + 20 probes = positions 0..20**. Compare wit
 | 14/15, 16/17, 18/19 | Word 10, 11, 12 respectively = 0 / 255 |
 | 20 | All nine words = 128 |
 
-Report whether changes affect a hue, brightness band, noise/detail, or screen region; move the same colored object across the frame to distinguish object-dependent from positional behavior. Include black/gray/white behavior and unchanged probes. Large endpoint changes suit visual testing; no fine band measurements are required. Exact IDs/order/timestamp are in [bin/README.md](../bin/README.md). After flashing 08, rebuild 07 with a newer timestamp before testing it.
+Report whether changes affect a hue, brightness band, noise/detail, or screen region; move the same colored object across the frame to distinguish object-dependent from positional behavior. Include black/gray/white behavior and unchanged probes. Large endpoint changes suit visual testing; no fine band measurements are required. Exact IDs/order/timestamp are in [binaries/README.md](binaries/README.md). After flashing 08, rebuild 07 with a newer timestamp before testing it.
 
 Storage: four 88-byte records at `81614 + 88*i`, fourteen at `8DF20 + 88*i` (end `8E3F0` exclusive), two at `8E520 + 88*i`. This repurposes inactive templates, special-1F tone data and unused LUTs. Selected IDs are `01` plus `19..2C` excluding `1F`, so they restore the baseline channel LUT; ID 01's grayscale pointer is cleared. Identity L2 `8E420..8E51F`, baseline/adaptive profile data, Normal kernels, media and flash tail remain intact. All pointers are distinct; no new code hooks, only the existing cycle edits. Reproduce with `node tests/tools/patch_g6.js --tests --round 5` (add `--force` for a newer repeat).
 
@@ -663,4 +663,60 @@ Open folder lists top-level JSON files with search/refresh and immediate selecti
 
 Band labels now reflect the observed dark-to-bright saturation role. Exact band equations are still absent from the pixel model; no speculative noise or new LUT model was added. 07/8 is starred in place of 07/7; 07/5 is retained as a cool look.
 
+## LUT RAM and expansion evidence (2026-11-26)
+
+Analysis only: no compiler changes or new binary. Stock firmware has **seven shared channel-table RAM slots**, five flash-loaded and two generated; these are not five/seven independent RGB filters or a demonstrated processor limit.
+
+| Path | Original instruction evidence | Destination |
+| --- | --- | --- |
+| Load L0..4 | `168BC..16954`: five 256-byte flash reads from files `8E320/8E520/8E420/8E220/8E120` | RAM `02008E40/02008F40/02009040/02009140/02009240` |
+| Generate L5/6 | `16958..1696C` calls `1683C` twice | RAM `02009340/02009440`; only entries 0..254 initialized |
+| Select channels | `59B28..59B74`: profile + `1244 + index*100`; sensor setup passes base `02007BFC` to `5A1A8` | Same RAM bank |
+| Upload R/G/B | `4DDC8` -> `5544C`: three 256-byte copies, then B008 update request | ISP device-table memory `84600/84800/84A00`, not spare main RAM |
+| Next occupied buffers | `16A38..16A88`: two 512-byte tone reads | Special-1F tone `02009540`, baseline tone `02009740`; an eighth LUT slot would collide |
+| Reinitialization | `59FDC/5A060` invoke tone/LUT loaders during ISP setup | Any replacement bank must survive/repeat mode/sensor initialization |
+
+LUT loading into RAM is explicit. Other parameters differ: effect records have flash pointers and selected fixed records are copied before their fields are written. The complete program is not simply loaded into RAM: boot copies selected SRAM/main-RAM sections, while main-body callbacks use the `060...` flash mapping.
+
+**G6 RAM evidence:** `55844..55888` clears `02007670..02200000` (end exclusive), called at `55B98`. This strongly supports a configured **2 MiB main-RAM range starting at 02000000**, not a measurement of free space or independent confirmation of physical capacity. Allocator `26760` rounds requests to 64 bytes, walks/splits blocks rooted at `0200A384`, and can fail. Video allocation `295E0..295FC` computes width*height*3/2 and calls it. No peak recording headroom or safe spare block is established.
+
+**Primary-source comparison:** [Spode's HX3302B X9S guide](https://github.com/andrewspode/hx3302b-x9s-camera/blob/main/docs/hardware-and-firmware-guide.md) reports measured 2 MiB RAM, 64 KiB SRAM and flash execution on another firmware/board. Its free-space measurements and addresses cannot be transplanted here. [Sprite_tm's SPI observations](https://spritesmods.com/?art=kid_cam&page=2) support selected boot copies followed by flash instruction fetching. [Puya's P25Q80H specification](https://www.puyasemi.com/gongye/2648.html) identifies **8 Mbit = 1 MiB SPI NOR flash**, not RAM. No authoritative HX3302B datasheet establishing G6 free heap was found.
+
+### Expansion choices
+
+- Reuse the two generated slots: real existing buffers, no extra RAM, but still only seven shared channel tables. Preserve Normal/identity and tone paths.
+- **Load only the selected RGB preset:** 768 bytes, then upload through the existing RAM-to-ISP writer. Reuse three slots or allocate one checked scratch buffer. ISP tables persist; no per-pixel/per-frame flash reload is inherently necessary. Requires a verified source-storage plan and changes within existing initialization/selection paths, not implemented here.
+- Allocate an expanded bank: eighteen unique custom channel tables plus identity = **4,864 bytes**, versus the current **1,792 bytes**; **3,072 additional bytes**. Use checked allocation rather than extending the fixed bank into tone buffers. Update loader, selector addressing, ownership and reinitialization together. Static evidence alone does not guarantee recording can spare it.
+
+More RAM and more flash storage are separate problems. Keeping modifications inside existing firmware structures also limits where additional source tables can live, even if runtime RAM is available. Changing a count/index alone cannot expand this bank.
+
+### Without hardware analysers
+
+Flash readback is not required for this static work, and the user has no demonstrated readback method. The X9S USB dumper uses a firmware-specific vendor SCSI command; compatibility with this G6 is unproved. A later in-place diagnostic could report allocation success/free-block sizes through an SD text file or existing screen, or embed selected RAM bytes in photo EXIF as the primary authors did. That would require a separate reviewed patch; no debugger access or unbounded memory probes are assumed.
+
+V0.1's slowdown is still a theory: flash reads/cache misses can slow LUT selection/upload, but the ISP retains uploaded tables, so flash residency alone does **not** explain continuous recording slowdown. The reset mechanism is unproved. The interpreter's application-region guard is a conservative policy, not proof of a hardware execution-protection boundary.
+
 Validation: 23 model/file tests and 44 original-instruction checks pass. Isolated browser checks exercised real temporary browser-private file handles (the directory picker was substituted), Save/Save As commits, raw-bit preservation, existing-name rejection, external edits, invalid JSON, rapid selection races, denied writes, read-only fallback/download, search/refresh and menu/layout preservation. Desktop/390px layouts retain all six previews without horizontal overflow. Native OS picker dialogs remain a manual browser check. Original and all eight firmware recipes reconstruct unchanged; no user filter files were written.
+
+## V0.2 transient heap build (2026-11-26)
+
+User requested restoring all 18 channel LUTs from v0.1. Release: custom/1795664901_connor_custom_v0.2, Unix **1795664901**, SHA-256 **bdb5921bb3792a93aa250439206beaae8418becc35d2318d4827e4a7c30062ce**. Seven identical source JSON presets remain alphabetical after Normal; six have three LUTs, temp is matrix-only. V0.1 and all source files are preserved.
+
+The implementation loads the entire 4,608-byte bank during a LUT-changing command, not permanently at boot: allocate with original 26760, check null/main-RAM bounds, copy through original flash-read service, upload three RAM tables with 4DDC8, then free with original 2695C. This avoids any persistent owner pointer, leak across mode reinitialization or reservation during normal recording. Allocation failure uses original 5973C LUT fallback; other selected parameter stages still apply. The allocator's free lists choose the block; no fixed spare RAM address is guessed. Tests preserve a separate live allocation and reject fragmented/non-main-RAM results. Real recording-time headroom is not measured; failure is handled instead of assumed away.
+
+| Changed area | Purpose / extent |
+| --- | --- |
+| 5962C..5973B | Existing LUT switch replaced in place: 244 instruction bytes, remaining 28 bytes NOP padding. No external branch to trailing storage |
+| 81614..816B7 | Seven offsets plus enabled matrix/saturation records in inactive templates |
+| Selected entries at 813D8/81404/814B4/81564 | Baseline edge and distinct fixed-record pointers for IDs 20..26 |
+| A83C0..A95BF | 4,608 source LUT bytes inside existing 00001291.wav capacity |
+| 39940/39968 and 7C504..7C51D | Existing eight-position cycle and wrap limits |
+| Header 14..17 | Full new timestamp; export removes exactly the last FF |
+
+The cleaned WAV's RIFF and PCM end is **A83BC** (27,886 bytes from A16CE), while its original resource ends **B28A6** (capacity 70,104). A83BC..A83BF is alignment space. All bytes through the declared audio end and all source WAV/JPG/JSON files match v0.1. This explicitly repurposes unused capacity, not the final FF region; playback and recording still need hardware confirmation.
+
+The sole observed direct call to 59478 is the sensor property handler at 17320 for property 10000705. Original guards require an active ISP and a changed effect ID. Normal/out-of-range/no-LUT selections take the original fallback before allocation; identical cached selections return earlier. There is no new boot or updater entry hook. An application can set this property during mode restoration too, so this is not a claim that only a physical button can ever trigger it.
+
+Preservation checks: original prefix 0..A5FF matches except required timestamp; all other original code outside the allowlist, original LUT/tone loader and libraries, source assets, v0.1 binary and eight test images match. F1200..FFFFE remains FF. Root/test original backups match.
+
+Validation: **30 automated tests** (23 editor/model/file + seven compiler tests), plus **44 original-instruction checks**. The compiler suite executes the original allocator/free and ISP writers, with only external IRQ/flash-read/ROM-copy services substituted. It performs 75 forward/reverse/repeated selections, compares all uploaded LUT bytes, verifies free-list restoration and unrelated-allocation canaries, exercises allocation failure with eight fragmented blocks, out-of-range allocation rejection, cached-ID bypass, 24 cycle transitions, source-storage bounds and independent changed-byte allowlists. The flash-read hook deliberately clobbers volatile registers. Actual v0.2 reconstructs exactly from v0.1 media + unchanged JSON and a verified-original code image. No claim of hardware validation or proof of v0.1's reset cause.

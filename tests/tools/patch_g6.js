@@ -288,7 +288,7 @@ function catalog(outDir, source) {
   }
   for (const r of results) lines.push(`| [${r.build.folder}](${r.build.folder}/${NAME}) | ${r.timestamp} | ${new Date(r.timestamp * 1000).toISOString()} | ${r.build.title}; Normal + ${r.build.filters.length-1} test filters. |`);
   lines.push('', 'Rebuild 08: `node tests/tools/patch_g6.js --tests --round 5 --force`; 07 uses round 4. Earlier rounds: 1 = 01..03, 2 = 04/05, 3 = 06. Add `--min-timestamp NUMBER` when needed. All known files supply the timestamp floor; rebuilding one round preserves the others.', '',
-    'Latest [07/08 feedback](../tests/FILTERS_Plan.md#hardware-feedback-builds-07-and-08): 07/8 is the preferred cartoon bookmark (replaces 07/7). Build-08 shadow noise and brightness-band observations are diagnostic notes. Original 04/7 was unobserved; the same offsets were later tested at 06/7.', '',
+    'Latest [07/08 feedback](../FILTERS_Plan.md#hardware-feedback-builds-07-and-08): 07/8 is the preferred cartoon bookmark (replaces 07/7). Build-08 shadow noise and brightness-band observations are diagnostic notes. Original 04/7 was unobserved; the same offsets were later tested at 06/7.', '',
     '**Position 0 = startup Normal**; short Down advances and Up reverses. 01..05 have 0..7; 06 has 0..14; 07/08 have 0..20 (the twenty-first Down returns to Normal).', '',
     'Keep scene, lighting and EV/WB fixed. In 08, compare every probe with position 1, noting which hues/brightness bands change, whether effects follow an object across the screen, and whether gray/white/black, detail or noise change. In 07, compare 1/2/10/11/3 for matched LUT/color effects; 18/19 should match and 20 should be grayscale.', '');
   for (const r of results) {
@@ -300,7 +300,7 @@ function catalog(outDir, source) {
     'Build 06 uses seven matrices at `0x81614..0x816BB`, two color records at `0x816BC..0x8176B`, and five at `0x8DF20..0x8E0D7`. These replace inactive edge/parameter and ID-1F tone data. All selected edge bytes are zero; ID 1F is absent. Baseline tone table, channel LUTs, grayscale matrix and media remain intact. The build is independent of earlier patches.', '',
     'Build 07 uses four color records at `0x81614..0x81773`, five at `0x8DF20..0x8E0D7`, and three 17-byte curves at `0x8E0D8/8E0EC/8E100`. LUTs L0/L1/L3/L4 become 8/4/2/8-level tables; L2 identity and adaptive baseline tables are preserved. LUT probes and positions 1/10 share the same fixed color-control pointer; position 3 changes only word 1 versus 2. Selected LUT IDs have their grayscale matrix cleared. No 1F/edge effects, media changes or flash-tail allocation.', '',
     'Build 08 stores full 88-byte records at `0x81614 + 88*i` (4), `0x8DF20 + 88*i` (14), and `0x8E520 + 88*i` (2). Inactive effect templates, ID-1F tone data and unused LUTs are repurposed; selected IDs are 01 and 19..2C excluding 1F, so all channel-LUT paths restore baseline. L2 identity, adaptive baseline data, normal edge kernels, original media and flash tail remain intact. No new processing-code hooks.', '',
-    'Technical details: [filter findings](../tests/FILTERS.md), [analysis and test plan](../tests/FILTERS_Plan.md), [patch recipes](../tests/analysis/MODDING.md).', '');
+    'Technical details: [filter findings](../FILTERS.md), [analysis and test plan](../FILTERS_Plan.md), [patch recipes](../analysis/MODDING.md).', '');
   return lines.join('\n');
 }
 function main(argv) {
@@ -313,14 +313,14 @@ function main(argv) {
     args[key] = flags.has(key) ? true : argv[++i];
     check(args[key] !== undefined, `Missing value for ${key}`);
   }
-  if (args['--help']) return console.log('node tests/tools/patch_g6.js --tests [--round 1|2|3|4|5] [--force] [--dry-run] [--min-timestamp UNIX]\nnode tests/tools/patch_g6.js --input FILE --recipe JSON --output bin/FOLDER/hx330x_sdk.bin\nOptional: --cycle "01,06,19,1A,1D,27,2A" --timestamp UNIX');
+  if (args['--help']) return console.log('node tests/tools/patch_g6.js --tests [--round 1|2|3|4|5] [--force] [--dry-run] [--min-timestamp UNIX]\nnode tests/tools/patch_g6.js --input FILE --recipe JSON --output tests/binaries/FOLDER/hx330x_sdk.bin\nOptional: --cycle "01,06,19,1A,1D,27,2A" --timestamp UNIX');
   const input = path.resolve(args['--input'] || ORIGINAL), source = fs.readFileSync(input), full = image(source);
   const minimum = Math.max(full.readUInt32LE(0x14), Number(args['--min-timestamp'] || 0));
   check(Number.isInteger(minimum) && minimum >= 0, 'Invalid minimum timestamp.');
   if (args['--tests']) {
     check(!args['--recipe'] && !args['--cycle'] && !args['--output'], '--tests cannot combine recipe/cycle/output overrides.');
     check(sha(source) === SHA256, 'Filter test presets require the exact original backup.');
-    const outDir = path.resolve(args['--out-dir'] || path.join(ROOT, 'bin')), builds = presets(full, Number(args['--round'] || 1));
+    const outDir = path.resolve(args['--out-dir'] || path.join(ROOT, 'tests/binaries')), builds = presets(full, Number(args['--round'] || 1));
     let latest = minimum;
     for (const build of [1,2,3,4,5].flatMap(round=>presets(full,round))) {
       const file = path.join(outDir, build.folder, NAME);

@@ -1,0 +1,11 @@
+{
+  "filters": [
+    "inverted-reality-glitch.json",
+    "jagged-lut.json",
+    "lut-funky-darks.json",
+    "neon-barf.json",
+    "subtle-rainbow.json",
+    "temp.json",
+    "warm-lut.json"
+  ]
+}

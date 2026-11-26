@@ -31,6 +31,8 @@ Bookmarked candidates: `02/2` strong red, `02/4` blue noise, `02/5` red/blue swa
 
 The RGB LUTs are 1D curves: input byte -> output byte. Identity is diagonal; four-level posterization is a staircase. JSON groups in the editor are descriptive labels, not recovered firmware struct names. Known register bit packing is exported separately from speculative preview equations.
 
+Stock LUT residency is confirmed: **five loaded + two generated shared RAM tables**, then three selected channels uploaded into ISP memory. This is a software layout limit, not a proven chip limit. Extending the bank would overwrite tone tables; loading a selected RGB preset needs only 768 bytes. [RAM/expansion evidence](FILTERS_Plan.md#lut-ram-and-expansion-evidence-2026-11-26).
+
 ## Original records and selectors
 
 | Stage | Pointer/selector table | Original records |
@@ -50,4 +52,4 @@ The original cycle contains Normal plus 26 IDs at `7C504` (27 selectable positio
 
 Custom RGB swaps, red-derived grayscale, saturation changes and four-level posterization have hardware evidence. IDs `19..1D,20,21` avoid the hard-coded LUT and ID-1F paths and can hold seven independent presets. Do not extend the original ID table into the code-pointer table at `7C520`. Each custom preset needs a distinct ID/pointer because the driver caches selections.
 
-[Filter editor](filter-emulator/README.md) provides a lightweight approximate preview with editable raw values. [Analysis and test plan](FILTERS_Plan.md) contains observations, confidence limits and remaining work. [Binary catalog](../bin/README.md) lists exact filter order and Unix timestamps; [modding map](analysis/MODDING.md) covers export and patch recipes.
+[Filter editor](filter-emulator/README.md) provides a lightweight approximate preview with editable raw values. [Analysis and test plan](FILTERS_Plan.md) contains observations, confidence limits and remaining work. [Binary catalog](binaries/README.md) lists exact filter order and Unix timestamps; [modding map](analysis/MODDING.md) covers export and patch recipes.

@@ -8,7 +8,7 @@ node tests/filter-emulator/server.js
 
 Open **http://127.0.0.1:8787**. No npm install, packages or build step. Pass another port as the final argument if needed. Ctrl+C stops the server.
 
-**Folder workflow:** Open folder (for example `custom/filters`), select a JSON filename to load/preview it, and use Find or the list's arrow keys to switch quickly. Refresh picks up external changes. The list includes JSON files directly inside that folder, not subfolders. Save updates the selected file; Save As uses New filename and creates a separate file, refusing existing names. A modified-file marker shows unsaved edits; switching away prompts before discarding. Save also checks for external edits before writing.
+**Folder workflow:** Open a project's `custom/<project>/filters` folder, select a JSON filename to load/preview it, and use Find or the list's arrow keys to switch quickly. Refresh picks up external changes. The list includes JSON files directly inside that folder, not subfolders. Save updates the selected file; Save As uses New filename and creates a separate file, refusing existing names. A modified-file marker shows unsaved edits; switching away prompts before discarding. Save also checks for external edits before writing.
 
 Direct folder saves use the browser's [File System Access API](https://developer.chrome.com/docs/capabilities/web-apis/file-system-access), available in supported desktop Chromium browsers such as Chrome/Edge on localhost. The browser asks for folder access. Without that API, folder loading is read only and Save JSON still downloads a file. Folder selection is session-only; reopen it after reloading. Restart an already-running Node server after updating these files so it serves `files.js`.
 

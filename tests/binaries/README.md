@@ -20,7 +20,7 @@ Source: original backup, SHA-256 `278551ea79d1485115e52d2e4e2ad49ce8aa616bedd6ba
 
 Rebuild 08: `node tests/tools/patch_g6.js --tests --round 5 --force`; 07 uses round 4. Earlier rounds: 1 = 01..03, 2 = 04/05, 3 = 06. Add `--min-timestamp NUMBER` when needed. All known files supply the timestamp floor; rebuilding one round preserves the others.
 
-Latest [07/08 feedback](../tests/FILTERS_Plan.md#hardware-feedback-builds-07-and-08): 07/8 is the preferred cartoon bookmark (replaces 07/7). Build-08 shadow noise and brightness-band observations are diagnostic notes. Original 04/7 was unobserved; the same offsets were later tested at 06/7.
+Latest [07/08 feedback](../FILTERS_Plan.md#hardware-feedback-builds-07-and-08): 07/8 is the preferred cartoon bookmark (replaces 07/7). Build-08 shadow noise and brightness-band observations are diagnostic notes. Original 04/7 was unobserved; the same offsets were later tested at 06/7.
 
 **Position 0 = startup Normal**; short Down advances and Up reverses. 01..05 have 0..7; 06 has 0..14; 07/08 have 0..20 (the twenty-first Down returns to Normal).
 
@@ -203,4 +203,4 @@ Build 07 uses four color records at `0x81614..0x81773`, five at `0x8DF20..0x8E0D
 
 Build 08 stores full 88-byte records at `0x81614 + 88*i` (4), `0x8DF20 + 88*i` (14), and `0x8E520 + 88*i` (2). Inactive effect templates, ID-1F tone data and unused LUTs are repurposed; selected IDs are 01 and 19..2C excluding 1F, so all channel-LUT paths restore baseline. L2 identity, adaptive baseline data, normal edge kernels, original media and flash tail remain intact. No new processing-code hooks.
 
-Technical details: [filter findings](../tests/FILTERS.md), [analysis and test plan](../tests/FILTERS_Plan.md), [patch recipes](../tests/analysis/MODDING.md).
+Technical details: [filter findings](../FILTERS.md), [analysis and test plan](../FILTERS_Plan.md), [patch recipes](../analysis/MODDING.md).

@@ -79,14 +79,14 @@ node tests/tools/patch_g6.js --tests --round 1 --force
 node tests/tools/patch_g6.js --tests --round 4 --force --min-timestamp LAST_INSTALLED_UNIX
 ```
 
-The [binary catalog](../../bin/README.md) records timestamps and zero-based positions. Round 1 = 01..03, 2 = 04/05, 3 = 06 (14 probes), 4 = 07 (20 LUT/primary/bit probes), 5 = 08 (20 nine-control probes). All have owner feedback. Rebuilding one round preserves the others; all known files set the timestamp floor. Repeating 07 after 08 needs a newer timestamp. The visible updater checks difference; exports also follow the owner's newer-timestamp constraint. Raw feedback: [FILTERS_Plan.md](../FILTERS_Plan.md).
+The [binary catalog](../binaries/README.md) records timestamps and zero-based positions. Round 1 = 01..03, 2 = 04/05, 3 = 06 (14 probes), 4 = 07 (20 LUT/primary/bit probes), 5 = 08 (20 nine-control probes). All have owner feedback. Rebuilding one round preserves the others; all known files set the timestamp floor. Repeating 07 after 08 needs a newer timestamp. The visible updater checks difference; exports also follow the owner's newer-timestamp constraint. Raw feedback: [FILTERS_Plan.md](../FILTERS_Plan.md).
 
 The [local editor](../filter-emulator/README.md) shows simultaneous camera/chart/image pairs, reference values and LUT curves. Save JSON includes record hex and derived register fields; Copy config makes an importable delta from editor-neutral-v1. Both remain editor formats, not this helper's `--recipe`: storage offsets and enabled pointers must be allocated separately. Labels/preview assumptions do not establish unknown hardware structures or equations.
 
 For a personal eight-position cycle of existing IDs:
 
 ```powershell
-node tests/tools/patch_g6.js --cycle "01,06,19,1A,1D,27,2A" --output bin/eight-favorites/hx330x_sdk.bin
+node tests/tools/patch_g6.js --cycle "01,06,19,1A,1D,27,2A" --output tests/binaries/eight-favorites/hx330x_sdk.bin
 ```
 
 Quote the cycle list in PowerShell; otherwise it can parse IDs such as `1D` as numbers. For additional fixed-offset changes, supply `--recipe path/to/recipe.json`. Example recipe (hex strings, equal-length replacements):
@@ -100,7 +100,15 @@ Quote the cycle list in PowerShell; otherwise it can parse IDs such as `1D` as n
 ```
 
 ```powershell
-node tests/tools/patch_g6.js --recipe recipe.json --output bin/my-filters/hx330x_sdk.bin
+node tests/tools/patch_g6.js --recipe recipe.json --output tests/binaries/my-filters/hx330x_sdk.bin
 ```
 
 `--input FILE` chooses another source, `--timestamp UNIX` specifies a timestamp, and `--dry-run` validates without writing. `--min-timestamp` must be lower than the new timestamp. Existing binaries require `--force`; the source image is never overwritten. The media exporter [replace_g6.py](../../replace_g6.py) remains the separate asset workflow; these test exports follow the timestamp/tail convention requested for hardware testing.
+
+## Custom projects
+
+Projects now use `custom/<unix>_<name>/`: media directly inside, JSON presets in `filters/`, output `hx330x_sdk.bin` and generated patch-map README alongside them. `replace_g6.py` uses the original backup/media cleanup, then `tools/compile_filters.js`. V0.1 placed code/data in trailing FF and passed flash LUT pointers directly; the camera later reset during filter selection. That approach is retired and its exact reset mechanism remains unproved.
+
+V0.2 (`1795664901_connor_custom_v0.2`) keeps all seven presets/18 channel LUTs, IDs 20..26 plus Normal. Existing switch bytes `5962C..5973B` are replaced in place. Original malloc/free (`26760/2695C`) provide a checked 4,608-byte block during a custom LUT change; the bank is loaded through the existing flash-read service, three RAM tables are uploaded to the ISP, then the block is freed. Failure restores the stock LUT path; other enabled parameter stages still apply. Normal, matrix-only and cached selections allocate nothing. Fixed LUT/tone banks, boot/update prefix and trailing FF remain unchanged.
+
+Source LUT bytes occupy `A83C0..A95BF`, after the shortened `00001291.wav` RIFF/PCM end `A83BC`, inside its existing resource ending `B28A6`. No source audio file or playable bytes change. Descriptors/records reuse `81614..816B7`. Tone/edge JSON compilation remains rejected; preview assumptions are never compiled. Full timestamp and single-final-FF export rules remain. [Research and validation](../FILTERS_Plan.md#v02-transient-heap-build-2026-11-26).

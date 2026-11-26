@@ -5,8 +5,8 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const G6=require('../filter-emulator/model.js'),{SHA256}=require('./patch_g6.js');
 const rom=fs.readFileSync(path.join(__dirname,'../original/backup1.bin'));
 assert.equal(crypto.createHash('sha256').update(rom).digest('hex'),SHA256);
-function run(start,setup,{image=rom,hooks={}}={}){
-  const r=new Uint32Array(32),mem=new Map(),spr=new Map();let pc=start,flag=false;
+function run(start,setup,{image=rom,hooks={},memory=new Map(),registers=new Map()}={}){
+  const r=new Uint32Array(32),mem=memory,spr=registers;let pc=start,flag=false;
   const rb=a=>a>=0x06000000&&a<0x06000000+image.length?image[a-0x06000000]:(mem.get(a>>>0)||0);
   const rw=a=>(rb(a)|(rb(a+1)<<8)|(rb(a+2)<<16)|(rb(a+3)<<24))>>>0;
   const store=(a,v,size=4)=>{for(let i=0;i<size;i++)mem.set((a+i)>>>0,(v>>>(i*8))&255);};
@@ -16,15 +16,15 @@ function run(start,setup,{image=rom,hooks={}}={}){
   };
   r[1]=0x02100000;r[9]=0xFFFFFFFC;setup({r,mem,spr,store});
   for(let n=0;n<25000;n++){
-    assert(pc>=0x200&&pc<0x6C000,`PC ${pc.toString(16)}`);
+    assert(pc>=0x200&&pc+4<=Math.min(image.length,rom.readUInt32LE(0x18)*512),`PC ${pc.toString(16)} outside original application region`);
     const w=image.readUInt32LE(pc),op=w>>>26,d=w>>>21&31,a=w>>>16&31,b=w>>>11&31,imm=w<<16>>16,offset=(w<<6>>6)*4;
     const split=((w>>>10)&0xF800)|(w&0x7FF);let next=pc+4;
     switch(op){
       case 0:next=pc+offset;break;
-      case 1:{const target=(pc+offset)>>>0;r[9]=pc+4;if(hooks[target])hooks[target]({r,mem,spr,store});else if(target!==0xFA0010B8)next=target;break;} // delay/barrier only
+      case 1:{const target=(pc+offset)>>>0;r[9]=pc+4;if(hooks[target])hooks[target]({r,mem,spr,store,rb,rw});else if(target!==0xFA0010B8)next=target;break;} // delay/barrier only
       case 3:if(!flag)next=pc+offset;break;case 4:if(flag)next=pc+offset;break;case 5:break;
       case 6:r[d]=(w&65535)<<16;break;
-      case 0x11:if(r[b]===0xFFFFFFFC)return {r,mem,spr,rw,rb,steps:n+1};next=r[b];break;
+      case 0x11:if(r[b]===0xFFFFFFFC)return {r,mem,spr,rw,rb,steps:n+1};next=r[b]>=0x06000000&&r[b]<0x06100000?r[b]-0x06000000:r[b];break;
       case 0x21:r[d]=rw((r[a]+imm)>>>0);break;case 0x23:r[d]=rb((r[a]+imm)>>>0);break;
       case 0x24:r[d]=rb((r[a]+imm)>>>0)<<24>>24;break;
       case 0x25:r[d]=rw((r[a]+imm)>>>0)&65535;break;case 0x26:r[d]=rw((r[a]+imm)>>>0)<<16>>16;break;
@@ -38,6 +38,7 @@ function run(start,setup,{image=rom,hooks={}}={}){
       case 0x38:{const fn=w&0x7FF;switch(fn){
         case 0:r[d]=r[a]+r[b];break;case 2:r[d]=r[a]-r[b];break;case 3:r[d]=r[a]&r[b];break;case 4:r[d]=r[a]|r[b];break;
         case 5:r[d]=r[a]^r[b];break;case 0x306:r[d]=Math.imul(r[a],r[b]);break;
+        case 8:r[d]=r[a]<<(r[b]&31);break;case 0x48:r[d]=r[a]>>>(r[b]&31);break;case 0x88:r[d]=r[a]>>(r[b]&31);break;
         case 0x30A:if(!r[b])throw Error('Unsigned division by zero');r[d]=Math.floor(r[a]/r[b]);break;
         default:throw Error(`ALU ${fn.toString(16)}`);}break;}
       case 0x39:flag=compare(d,r[a],r[b]);break;
